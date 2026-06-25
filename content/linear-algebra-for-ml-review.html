@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathematics for Machine Learning — Linear Algebra Review</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' },
+  startup: { typeset: true }
+};
+</script>
+<script id="MathJax-script" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+
+<style>
+:root{
+  --paper:#FAF6EE;
+  --paper-2:#F2EADC;
+  --card:#FFFFFF;
+  --ink:#221F19;
+  --ink-soft:#5E574A;
+  --ink-faint:#8B8273;
+  --line:#E5DCCB;
+  --line-strong:#D6C9B2;
+  --teal:#1E6E66;
+  --teal-deep:#155049;
+  --teal-soft:#D9EAE5;
+  --ochre:#B5652A;
+  --ochre-soft:#F4E3CE;
+  --plum:#7A4380;
+  --plum-soft:#EEDFF0;
+  --gold:#C99A2E;
+  --rule:1px solid var(--line);
+  --shadow-sm:0 1px 2px rgba(60,48,28,.05), 0 2px 8px rgba(60,48,28,.04);
+  --shadow-md:0 4px 14px rgba(60,48,28,.08), 0 12px 30px rgba(60,48,28,.06);
+  --radius:16px;
+  --sans:'Hanken Grotesk',system-ui,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;scroll-padding-top:24px;}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--ink);
+  background-color:var(--paper);
+  background-image:
+     radial-gradient(circle at 1px 1px, rgba(120,100,60,.07) 1px, transparent 0);
+  background-size:24px 24px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--teal-soft);}
+
+/* ---------- Layout ---------- */
+.shell{display:grid;grid-template-columns:264px 1fr;max-width:1340px;margin:0 auto;}
+.sidebar{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:30px 20px 40px 28px;
+  border-right:var(--rule);
+  background:rgba(250,246,238,.82);
+  backdrop-filter:blur(6px);
+}
+.content{padding:0 clamp(20px,4vw,64px);min-width:0;}
+
+/* ---------- Sidebar ---------- */
+.brand{display:flex;align-items:center;gap:11px;margin-bottom:6px;}
+.brand-mark{
+  width:38px;height:38px;border-radius:10px;flex:none;
+  background:linear-gradient(150deg,var(--teal),var(--teal-deep));
+  display:grid;place-items:center;color:#fff;font-family:var(--serif);
+  font-weight:600;font-size:20px;box-shadow:var(--shadow-sm);
+}
+.brand-text b{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.01em;display:block;line-height:1.2;}
+.brand-text span{font-size:11.5px;color:var(--ink-faint);letter-spacing:.04em;text-transform:uppercase;}
+.nav{margin-top:26px;}
+.nav-group{margin-bottom:18px;}
+.nav-group > .nav-label{
+  font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:600;margin:0 0 8px 6px;
+}
+.nav a{
+  display:block;text-decoration:none;color:var(--ink-soft);
+  font-size:13.5px;padding:6px 11px;border-radius:8px;margin:1px 0;
+  border-left:2px solid transparent;transition:all .16s ease;
+}
+.nav a:hover{background:var(--paper-2);color:var(--ink);}
+.nav a.active{background:var(--teal-soft);color:var(--teal-deep);font-weight:600;border-left-color:var(--teal);}
+.nav .sub a{font-size:12.5px;padding-left:22px;color:var(--ink-faint);}
+.nav .sub a:hover{color:var(--ink-soft);}
+
+.progress-wrap{margin-top:24px;padding:14px;border:var(--rule);border-radius:12px;background:var(--card);}
+.progress-wrap .plabel{font-size:11px;color:var(--ink-faint);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.progress-track{height:7px;background:var(--paper-2);border-radius:99px;overflow:hidden;}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .25s;}
+.progress-num{font-family:var(--mono);font-size:12px;margin-top:7px;color:var(--ink-soft);}
+
+/* ---------- Hero ---------- */
+.hero{padding:64px 0 30px;border-bottom:var(--rule);position:relative;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--teal-deep);font-weight:600;margin-bottom:18px;
+  background:var(--teal-soft);padding:6px 13px;border-radius:99px;
+}
+.hero h1{
+  font-family:var(--serif);font-weight:600;font-size:clamp(36px,6vw,64px);
+  line-height:1.02;margin:0 0 18px;letter-spacing:-.02em;
+  font-variation-settings:'opsz' 144;
+}
+.hero h1 em{font-style:italic;color:var(--teal);font-variation-settings:'opsz' 144,'SOFT' 40;}
+.hero p.lead{font-size:18px;color:var(--ink-soft);max-width:620px;margin:0 0 26px;}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;}
+.chip{
+  font-size:12.5px;padding:7px 14px;border-radius:99px;border:var(--rule);
+  background:var(--card);color:var(--ink-soft);font-weight:500;
+}
+.chip b{color:var(--teal-deep);}
+
+/* ---------- Sections ---------- */
+section{scroll-margin-top:20px;}
+.week{padding:54px 0;border-bottom:var(--rule);}
+.week-head{display:flex;align-items:flex-start;gap:18px;margin-bottom:10px;}
+.week-num{
+  font-family:var(--serif);font-size:13px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:#fff;background:var(--teal-deep);
+  padding:8px 12px;border-radius:10px;white-space:nowrap;margin-top:6px;flex:none;
+  box-shadow:var(--shadow-sm);
+}
+.week-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4vw,40px);margin:0;letter-spacing:-.015em;line-height:1.08;}
+.week-head .sub{color:var(--ink-faint);font-size:14.5px;margin-top:4px;}
+
+h3.topic{
+  font-family:var(--serif);font-size:23px;font-weight:600;margin:42px 0 4px;
+  letter-spacing:-.01em;display:flex;align-items:center;gap:11px;
+}
+h3.topic::before{content:"";width:7px;height:22px;border-radius:3px;background:var(--ochre);flex:none;}
+h4{font-size:16px;font-weight:600;margin:24px 0 8px;color:var(--ink);}
+p{margin:10px 0;color:var(--ink-soft);}
+p strong, li strong{color:var(--ink);font-weight:600;}
+.content p, .content li{font-size:15.5px;}
+ul,ol{padding-left:22px;}li{margin:5px 0;color:var(--ink-soft);}
+
+/* ---------- ML motivation callout ---------- */
+.ml-callout{
+  display:flex;gap:16px;align-items:flex-start;
+  background:linear-gradient(135deg,#fff,var(--paper-2));
+  border:var(--rule);border-left:4px solid var(--ochre);
+  padding:20px 22px;border-radius:14px;margin:22px 0;box-shadow:var(--shadow-sm);
+}
+.ml-callout .ico{font-size:22px;flex:none;line-height:1;margin-top:2px;}
+.ml-callout .ml-tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);font-weight:700;}
+.ml-callout h4{margin:2px 0 6px;font-family:var(--serif);font-size:18px;}
+.ml-callout p{margin:0;font-size:14.5px;}
+
+/* ---------- Concept cards ---------- */
+.card{
+  background:var(--card);border:var(--rule);border-radius:var(--radius);
+  padding:22px 24px;margin:18px 0;box-shadow:var(--shadow-sm);
+}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+.def{border-left:3px solid var(--teal);padding-left:16px;margin:18px 0;}
+.def .def-term{font-weight:700;color:var(--teal-deep);font-family:var(--serif);font-size:17px;}
+
+.eqbox{
+  background:var(--paper-2);border:var(--rule);border-radius:12px;
+  padding:6px 18px;margin:16px 0;overflow-x:auto;text-align:center;
+}
+.note{font-size:13.5px;color:var(--ink-faint);font-style:italic;}
+
+.keyval{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:14.5px;margin:12px 0;}
+.keyval dt{font-weight:600;color:var(--ink);}
+.keyval dd{margin:0;color:var(--ink-soft);}
+
+table.cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+table.cmp th,table.cmp td{border:var(--rule);padding:10px 13px;text-align:left;}
+table.cmp th{background:var(--paper-2);font-weight:600;color:var(--ink);font-size:12.5px;letter-spacing:.03em;text-transform:uppercase;}
+table.cmp td code{font-family:var(--mono);font-size:12.5px;}
+.tag-sing{color:var(--ochre);font-weight:600;}
+.tag-non{color:var(--teal);font-weight:600;}
+
+/* ---------- Interactive tool ---------- */
+.tool{
+  background:var(--card);border:var(--rule);border-radius:18px;
+  margin:26px 0;overflow:hidden;box-shadow:var(--shadow-md);
+}
+.tool-head{
+  padding:16px 22px;border-bottom:var(--rule);display:flex;align-items:center;gap:11px;
+  background:linear-gradient(180deg,#fff,var(--paper));
+}
+.tool-head .badge{
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  background:var(--teal-deep);color:#fff;padding:5px 10px;border-radius:7px;
+}
+.tool-head h4{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;}
+.tool-head .desc{font-size:13px;color:var(--ink-faint);margin-left:auto;text-align:right;max-width:46%;}
+.tool-body{padding:22px;}
+.tool-layout{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;}
+@media(max-width:680px){.tool-layout{grid-template-columns:1fr;}}
+canvas{background:#fff;border:var(--rule);border-radius:12px;display:block;max-width:100%;touch-action:none;}
+
+.controls{display:flex;flex-direction:column;gap:13px;min-width:0;}
+.matrix-input{display:inline-grid;gap:7px;padding:12px;border:var(--rule);border-radius:12px;background:var(--paper);}
+.matrix-input.m2{grid-template-columns:repeat(2,1fr);}
+.matrix-input.m3{grid-template-columns:repeat(3,1fr);}
+.matrix-input.m23{grid-template-columns:repeat(2,1fr);}
+.minput{
+  width:54px;padding:8px;text-align:center;font-family:var(--mono);font-size:15px;
+  border:var(--rule);border-radius:8px;background:#fff;color:var(--ink);
+}
+.minput:focus{outline:2px solid var(--teal);border-color:var(--teal);}
+.field-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:11px;color:var(--ink-faint);letter-spacing:.04em;text-transform:uppercase;font-weight:600;}
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row span{font-family:var(--mono);font-size:13px;min-width:42px;text-align:right;color:var(--teal-deep);}
+input[type=range]{flex:1;accent-color:var(--teal);}
+
+.btnrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;}
+.btn{
+  font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;
+  padding:7px 13px;border-radius:8px;border:var(--rule);background:var(--card);
+  color:var(--ink-soft);transition:all .15s;
+}
+.btn:hover{background:var(--paper-2);color:var(--ink);border-color:var(--line-strong);}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+.btn.primary:hover{background:var(--teal-deep);}
+
+.readout{
+  background:var(--paper);border:var(--rule);border-radius:12px;padding:14px 16px;
+  font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--ink);
+}
+.readout .lbl{color:var(--ink-faint);}
+.readout b{color:var(--teal-deep);}
+.verdict{display:inline-block;padding:3px 10px;border-radius:7px;font-weight:600;font-size:12.5px;}
+.verdict.ok{background:var(--teal-soft);color:var(--teal-deep);}
+.verdict.warn{background:var(--ochre-soft);color:var(--ochre);}
+.verdict.plum{background:var(--plum-soft);color:var(--plum);}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink-soft);margin-top:10px;}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:5px;vertical-align:-2px;}
+
+/* ---------- Practice ---------- */
+.quiz{background:var(--card);border:var(--rule);border-radius:16px;padding:22px;margin:16px 0;box-shadow:var(--shadow-sm);}
+.quiz .qhead{display:flex;gap:10px;align-items:baseline;margin-bottom:8px;}
+.quiz .qnum{font-family:var(--mono);font-size:12px;color:#fff;background:var(--ochre);padding:3px 8px;border-radius:6px;font-weight:600;flex:none;}
+.quiz .qtext{font-weight:500;color:var(--ink);font-size:15.5px;}
+.opts{display:flex;flex-direction:column;gap:8px;margin:12px 0 6px;}
+.opt{
+  text-align:left;padding:11px 15px;border:var(--rule);border-radius:10px;background:var(--paper);
+  cursor:pointer;font-size:14.5px;color:var(--ink-soft);transition:all .14s;font-family:var(--sans);
+}
+.opt:hover{border-color:var(--line-strong);background:#fff;}
+.opt.correct{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-deep);font-weight:600;}
+.opt.wrong{background:#FBE6E0;border-color:#E0A28C;color:#A23E1E;}
+.opt.disabled{cursor:default;pointer-events:none;}
+.opt .mk{float:right;font-weight:700;}
+.explain{
+  margin-top:10px;font-size:14px;color:var(--ink-soft);background:var(--paper);
+  border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:11px 14px;display:none;
+}
+.explain.show{display:block;}
+.explain b{color:var(--teal-deep);}
+
+.reveal-q{background:var(--card);border:var(--rule);border-radius:14px;padding:18px 20px;margin:14px 0;box-shadow:var(--shadow-sm);}
+.reveal-q .qtext{font-weight:500;color:var(--ink);font-size:15px;}
+.reveal-q .ans{display:none;margin-top:12px;padding-top:12px;border-top:var(--rule);font-size:14.5px;color:var(--ink-soft);}
+.reveal-q .ans.show{display:block;}
+
+/* ---------- Cheat sheet ---------- */
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;}
+.cheat{background:var(--card);border:var(--rule);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow-sm);}
+.cheat h4{margin:0 0 10px;font-family:var(--serif);font-size:17px;color:var(--teal-deep);display:flex;align-items:center;gap:8px;}
+.cheat h4 .dot{width:9px;height:9px;border-radius:50%;background:var(--ochre);}
+.cheat .row{font-size:14px;margin:9px 0;color:var(--ink-soft);}
+
+footer{padding:40px 0 60px;color:var(--ink-faint);font-size:13px;}
+footer b{color:var(--ink-soft);}
+
+/* mobile */
+.menu-btn{display:none;}
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{position:fixed;left:0;top:0;width:280px;z-index:50;transform:translateX(-105%);transition:transform .25s;box-shadow:var(--shadow-md);}
+  .sidebar.open{transform:translateX(0);}
+  .menu-btn{display:grid;position:fixed;top:14px;left:14px;z-index:60;width:46px;height:46px;place-items:center;
+    background:var(--teal-deep);color:#fff;border:none;border-radius:12px;font-size:20px;cursor:pointer;box-shadow:var(--shadow-md);}
+  .content{padding:0 20px;}
+  .hero{padding-top:70px;}
+  .tool-head .desc{display:none;}
+}
+.scrim{display:none;position:fixed;inset:0;background:rgba(34,31,25,.35);z-index:40;}
+.scrim.show{display:block;}
+
+/* ---------- Worked examples (collapsible) ---------- */
+.worked{
+  border:var(--rule);border-left:4px solid var(--gold);border-radius:14px;margin:20px 0;
+  background:linear-gradient(180deg,#fff,var(--paper));overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.worked > summary{
+  cursor:pointer;list-style:none;padding:15px 20px;font-weight:600;font-family:var(--serif);
+  font-size:17px;color:var(--ink);display:flex;align-items:center;gap:11px;user-select:none;
+}
+.worked > summary::-webkit-details-marker{display:none;}
+.worked > summary .wk-tag{
+  font-family:var(--sans);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:#fff;background:var(--gold);padding:4px 9px;border-radius:6px;flex:none;
+}
+.worked > summary .chev{margin-left:auto;transition:transform .2s;color:var(--ink-faint);font-size:14px;}
+.worked[open] > summary .chev{transform:rotate(90deg);}
+.worked .wbody{padding:2px 22px 16px;}
+.step{display:flex;gap:14px;padding:13px 0;border-top:1px dashed var(--line);}
+.step:first-child{border-top:none;}
+.step .sn{
+  flex:none;width:27px;height:27px;border-radius:50%;background:var(--teal);color:#fff;
+  font-size:13px;font-weight:600;display:grid;place-items:center;font-family:var(--mono);margin-top:2px;
+}
+.step .sc{font-size:14.5px;color:var(--ink-soft);line-height:1.55;}
+.step .sc b{color:var(--ink);}
+.step .sc .eqbox{margin:9px 0;text-align:left;}
+
+/* ---------- Bracketed matrix (generated content) ---------- */
+.bmatrix{
+  display:inline-grid;gap:3px 12px;padding:5px 12px;position:relative;font-family:var(--mono);
+  font-size:14px;vertical-align:middle;margin:2px 5px;
+}
+.bmatrix::before,.bmatrix::after{content:"";position:absolute;top:2px;bottom:2px;width:7px;border:2px solid var(--ink-soft);}
+.bmatrix::before{left:0;border-right:none;border-radius:4px 0 0 4px;}
+.bmatrix::after{right:0;border-left:none;border-radius:0 4px 4px 0;}
+.bmatrix span{text-align:right;min-width:1.5em;}
+
+/* ---------- PCA tool ---------- */
+.pca-layout{display:grid;grid-template-columns:auto auto 1fr;gap:24px;align-items:start;}
+@media(max-width:760px){.pca-layout{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.pca-layout{grid-template-columns:1fr;}}
+.pca-cap{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;margin-bottom:7px;}
+.pca-canvas{width:176px;height:176px;image-rendering:pixelated;border:var(--rule);border-radius:10px;background:#fff;}
+.pca-spectrum{display:flex;align-items:flex-end;gap:2px;height:54px;margin-top:6px;padding:6px;background:var(--paper);border:var(--rule);border-radius:8px;}
+.pca-spectrum .bar{flex:1;background:var(--line-strong);border-radius:2px 2px 0 0;transition:height .15s,background .15s;min-height:2px;}
+.pca-spectrum .bar.kept{background:var(--plum);}
+
+/* ---------- Generative drills ---------- */
+.drill{background:var(--card);border:var(--rule);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-md);margin:24px 0;}
+.drill-head{padding:16px 22px;border-bottom:var(--rule);display:flex;align-items:center;gap:11px;flex-wrap:wrap;background:linear-gradient(180deg,#fff,var(--paper));}
+.drill-head .badge{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;background:var(--ochre);color:#fff;padding:5px 10px;border-radius:7px;}
+.drill-head h4{margin:0;font-family:var(--serif);font-size:18px;font-weight:600;}
+.drill-stats{margin-left:auto;display:flex;gap:14px;font-family:var(--mono);font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
+.drill-stats b{color:var(--teal-deep);}
+.drill-body{padding:24px;}
+.drill-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.drill-typelabel{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ochre);background:var(--ochre-soft);padding:5px 11px;border-radius:7px;}
+.drill-prompt{font-size:18px;color:var(--ink);line-height:1.7;margin:6px 0 18px;font-weight:500;}
+.drill-answer-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.drill-input{width:130px;padding:11px 14px;font-family:var(--mono);font-size:16px;border:var(--rule);border-radius:10px;background:#fff;color:var(--ink);}
+.drill-input:focus{outline:2px solid var(--teal);border-color:var(--teal);}
+.drill-feedback{font-weight:600;font-size:15px;padding:6px 0;min-height:24px;}
+.drill-feedback.right{color:var(--teal-deep);}
+.drill-feedback.wrong{color:#A23E1E;}
+.drill-solution{display:none;margin-top:14px;background:var(--paper);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:13px 16px;font-size:14.5px;color:var(--ink-soft);line-height:1.7;}
+.drill-solution.show{display:block;}
+.drill-solution b{color:var(--ink);}
+.select{padding:8px 12px;font-family:var(--sans);font-size:13px;border:var(--rule);border-radius:9px;background:#fff;color:var(--ink-soft);font-weight:600;cursor:pointer;}
+.drill-progress{font-family:var(--mono);font-size:13px;color:var(--ink-soft);}
+.exam-result{text-align:center;padding:20px 10px;}
+.exam-result .big{font-family:var(--serif);font-size:46px;font-weight:600;color:var(--teal-deep);line-height:1;}
+.exam-result .sub{color:var(--ink-soft);margin-top:8px;}
+.timer{font-family:var(--mono);font-size:13px;color:var(--ochre);font-weight:600;}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Σ</div>
+      <div class="brand-text">
+        <b>Linear Algebra</b>
+        <span>Math for ML · Course 1</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group">
+        <a href="#overview">Overview</a>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Week 1 · Systems</p>
+        <a href="#w1">Systems of Linear Equations</a>
+        <div class="sub">
+          <a href="#w1-systems">Equations &amp; lines</a>
+          <a href="#w1-singular">Singular vs non-singular</a>
+          <a href="#w1-det">The determinant</a>
+          <a href="#tool-lines">⚙ Line-system explorer</a>
+          <a href="#tool-det">⚙ Determinant calculator</a>
+          <a href="#w1-practice">Practice</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Week 2 · Solving</p>
+        <a href="#w2">Solving Systems</a>
+        <div class="sub">
+          <a href="#w2-elim">Elimination</a>
+          <a href="#w2-rank">Rank</a>
+          <a href="#w2-ref">Row echelon form</a>
+          <a href="#tool-rref">⚙ Row-reduction stepper</a>
+          <a href="#w2-practice">Practice</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Week 3 · Vectors</p>
+        <a href="#w3">Vectors &amp; Transformations</a>
+        <div class="sub">
+          <a href="#w3-vectors">Vectors &amp; norms</a>
+          <a href="#w3-dot">Dot product</a>
+          <a href="#tool-vec">⚙ Vector playground</a>
+          <a href="#w3-trans">Linear transformations</a>
+          <a href="#w3-inv">Matrix inverses</a>
+          <a href="#tool-trans">⚙ Transformation lab</a>
+          <a href="#w3-practice">Practice</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Week 4 · Eigen</p>
+        <a href="#w4">Determinants &amp; Eigenvectors</a>
+        <div class="sub">
+          <a href="#w4-area">Determinant as area</a>
+          <a href="#w4-basis">Bases &amp; span</a>
+          <a href="#w4-eigen">Eigenvalues &amp; vectors</a>
+          <a href="#tool-eigen">⚙ Eigenvector explorer</a>
+          <a href="#w4-null">Null space</a>
+          <a href="#w4-pca">PCA</a>
+          <a href="#tool-pca">⚙ PCA image compression</a>
+          <a href="#w4-practice">Practice</a>
+        </div>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Practice Lab</p>
+        <a href="#drills">🎯 Generative drills</a>
+        <a href="#drills">⏱ Timed exam mode</a>
+      </div>
+      <div class="nav-group">
+        <a href="#cheat">📋 Formula Cheat Sheet</a>
+      </div>
+    </nav>
+    <div class="progress-wrap">
+      <div class="plabel">Practice progress</div>
+      <div class="progress-track"><div class="progress-bar" id="pbar"></div></div>
+      <div class="progress-num" id="pnum">0 / 0 answered</div>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENT ============ -->
+  <main class="content">
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+      <span class="eyebrow">◆ Complete Review Companion</span>
+      <h1>Linear Algebra<br>for <em>Machine&nbsp;Learning</em></h1>
+      <p class="lead">Everything from the four-week course, compiled into one place — rigorous definitions, worked equations, six interactive tools, and graded practice. Built for fast review before exams or projects.</p>
+      <div class="hero-meta">
+        <span class="chip"><b>4</b> chapters</span>
+        <span class="chip"><b>7</b> interactive tools</span>
+        <span class="chip"><b>20</b> guided questions</span>
+        <span class="chip">Worked solutions</span>
+        <span class="chip">Endless drills + timed exam</span>
+      </div>
+    </header>
+
+    <!-- ===================================================== WEEK 1 -->
+    <section class="week" id="w1">
+      <div class="week-head">
+        <div class="week-num">Week 1</div>
+        <div>
+          <h2>Systems of Linear Equations</h2>
+          <div class="sub">Singular &amp; non-singular matrices · determinants · rank · linear dependence</div>
+        </div>
+      </div>
+
+      <div class="ml-callout">
+        <div class="ico">🧠</div>
+        <div>
+          <div class="ml-tag">Why ML cares</div>
+          <h4>Neural networks are stacks of matrix operations</h4>
+          <p>An image fed to a network is just a grid of numbers — a matrix. Each layer multiplies it by a weight matrix. Asking "does this picture contain a face?" reduces to repeated linear-algebra operations. Before you can train anything, you need to understand when those systems have answers.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w1-systems">From sentences to equations to lines</h3>
+      <p>A <strong>system of equations</strong> is a set of conditions that share unknowns. The course builds intuition with "systems of sentences" (e.g. <em>the dog is black, the cat is orange</em>) and then translates them into algebra. The key insight carries over: a system can be <strong>complete</strong> (gives full information), <strong>redundant</strong> (repeats information), or <strong>contradictory</strong> (impossible).</p>
+
+      <div class="def">
+        <span class="def-term">Linear equation</span> — every variable appears to the first power only; no products, powers, roots, or functions of the variables.
+      </div>
+      <div class="eqbox">\[ a_1 x_1 + a_2 x_2 + \dots + a_n x_n = b \]</div>
+      <p>In two variables, a linear equation is a <strong>line</strong>; in three variables it is a <strong>plane</strong>. Solving a system geometrically means finding where those lines/planes <strong>intersect</strong>.</p>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>Two lines, three outcomes</h4>
+          <ul>
+            <li><strong>Cross once</strong> → one solution → <span class="tag-non">non-singular</span></li>
+            <li><strong>Same line</strong> → infinitely many → <span class="tag-sing">singular (redundant)</span></li>
+            <li><strong>Parallel</strong> → no solution → <span class="tag-sing">singular (contradictory)</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>System as a matrix equation</h4>
+          <div class="eqbox" style="margin:8px 0;">\[ \begin{bmatrix} a & b \\ c & d \end{bmatrix}\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} e \\ f \end{bmatrix} \]</div>
+          <p class="note">The coefficient matrix \(A\) holds the "structure"; the constants on the right don't affect whether \(A\) is singular.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w1-singular">Singular vs. non-singular matrices</h3>
+      <p>A square matrix is <strong>non-singular</strong> if its rows (equivalently, its columns) are <strong>linearly independent</strong> — none can be built from the others. It is <strong>singular</strong> if there is linear dependence, which means the system carries less information than it appears to.</p>
+      <table class="cmp">
+        <tr><th>Property</th><th class="tag-non">Non-singular</th><th class="tag-sing">Singular</th></tr>
+        <tr><td>Rows / columns</td><td>independent</td><td>dependent</td></tr>
+        <tr><td>Determinant</td><td><code>det ≠ 0</code></td><td><code>det = 0</code></td></tr>
+        <tr><td>Solutions to \(Ax=b\)</td><td>exactly one</td><td>zero or infinitely many</td></tr>
+        <tr><td>Inverse \(A^{-1}\)</td><td>exists</td><td>does not exist</td></tr>
+        <tr><td>Rank (n×n)</td><td>full (= n)</td><td>less than n</td></tr>
+      </table>
+      <p class="note">A neat fact from the course: the <em>constants</em> on the right-hand side never change singularity — only the coefficient matrix does.</p>
+
+      <h3 class="topic" id="w1-det">The determinant</h3>
+      <p>The <strong>determinant</strong> is a single number computed from a square matrix that tells you, at a glance, whether it is singular. <strong>A matrix is singular exactly when its determinant is zero.</strong></p>
+      <div class="grid2">
+        <div class="card">
+          <h4>2 × 2 determinant</h4>
+          <div class="eqbox">\[ \det\!\begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc \]</div>
+          <p class="note">Product of the main diagonal minus product of the anti-diagonal.</p>
+        </div>
+        <div class="card">
+          <h4>3 × 3 determinant (Sarrus)</h4>
+          <div class="eqbox" style="font-size:.92em;">\[ \det\!\begin{bmatrix} a & b & c \\ d & e & f \\ g & h & i \end{bmatrix} = aei + bfg + cdh - ceg - bdi - afh \]</div>
+          <p class="note">Add the three "down-right" diagonals, subtract the three "down-left" diagonals.</p>
+        </div>
+      </div>
+
+      <details class="worked">
+        <summary><span class="wk-tag">Worked</span> 3×3 determinant, expanded line by line <span class="chev">▶</span></summary>
+        <div class="wbody">
+          <p class="note" style="margin-top:6px;">Find \(\det\begin{bmatrix}2&1&3\\1&0&2\\4&1&8\end{bmatrix}\) and decide if it is singular.</p>
+          <div class="step"><div class="sn">1</div><div class="sc">Expand along the first row using cofactors: \(\;\det = a(ei-fh) - b(di-fg) + c(dh-eg)\), with \(a=2,b=1,c=3\).</div></div>
+          <div class="step"><div class="sn">2</div><div class="sc">First minor: \(ei-fh = (0)(8)-(2)(1) = -2\). So the first term is \(2\cdot(-2) = -4\).</div></div>
+          <div class="step"><div class="sn">3</div><div class="sc">Second minor: \(di-fg = (1)(8)-(2)(4) = 0\). With the minus sign: \(-1\cdot 0 = 0\).</div></div>
+          <div class="step"><div class="sn">4</div><div class="sc">Third minor: \(dh-eg = (1)(1)-(0)(4) = 1\). So the third term is \(3\cdot 1 = 3\).</div></div>
+          <div class="step"><div class="sn">5</div><div class="sc">Add them: \(\det = -4 + 0 + 3 = \mathbf{-1}\). Since \(\det \neq 0\), the matrix is <b>non-singular</b> — its three rows are linearly independent.</div></div>
+        </div>
+      </details>
+
+      <details class="worked">
+        <summary><span class="wk-tag">Worked</span> Is this 2×2 matrix singular? <span class="chev">▶</span></summary>
+        <div class="wbody">
+          <p class="note" style="margin-top:6px;">Test \(\begin{bmatrix}2&6\\3&9\end{bmatrix}\).</p>
+          <div class="step"><div class="sn">1</div><div class="sc">Compute the determinant: \(\det = ad-bc = (2)(9)-(6)(3) = 18 - 18 = 0\).</div></div>
+          <div class="step"><div class="sn">2</div><div class="sc">Because \(\det = 0\), the matrix is <b>singular</b>. Sanity check the dependence: row 2 \((3,9)\) is exactly \(1.5\times\) row 1 \((2,6)\), so the rows carry the same information.</div></div>
+          <div class="step"><div class="sn">3</div><div class="sc">Consequence: it has <b>no inverse</b>, and any system \(Ax=b\) built from it has either zero or infinitely many solutions — never a unique one.</div></div>
+        </div>
+      </details>
+
+      <!-- TOOL: line system -->
+      <div class="tool" id="tool-lines">
+        <div class="tool-head">
+          <span class="badge">Tool 01</span>
+          <h4>Line-system explorer</h4>
+          <span class="desc">Drag the coefficients and watch two lines decide whether the system is non-singular, redundant, or contradictory.</span>
+        </div>
+        <div class="tool-body">
+          <div class="tool-layout">
+            <canvas id="linesCanvas" width="360" height="360"></canvas>
+            <div class="controls">
+              <div class="readout" style="font-family:var(--sans);font-size:14px;">
+                Equation 1: <code>a₁x + b₁y = c₁</code> &nbsp;·&nbsp; Equation 2: <code>a₂x + b₂y = c₂</code>
+              </div>
+              <div class="field-row">
+                <span style="font-family:var(--mono);color:var(--teal);font-weight:600;">Line 1</span>
+                <div class="field"><label>a₁</label><input class="minput" id="L_a1" value="1"></div>
+                <div class="field"><label>b₁</label><input class="minput" id="L_b1" value="1"></div>
+                <div class="field"><label>c₁</label><input class="minput" id="L_c1" value="2"></div>
+              </div>
+              <div class="field-row">
+                <span style="font-family:var(--mono);color:var(--ochre);font-weight:600;">Line 2</span>
+                <div class="field"><label>a₂</label><input class="minput" id="L_a2" value="1"></div>
+                <div class="field"><label>b₂</label><input class="minput" id="L_b2" value="-1"></div>
+                <div class="field"><label>c₂</label><input class="minput" id="L_c2" value="0"></div>
+              </div>
+              <div class="readout" id="linesOut"></div>
+              <div class="btnrow">
+                <button class="btn" onclick="linePreset('unique')">Unique</button>
+                <button class="btn" onclick="linePreset('redundant')">Redundant</button>
+                <button class="btn" onclick="linePreset('contra')">Contradictory</button>
+              </div>
+              <div class="legend">
+                <span><i style="background:#1E6E66"></i>Line 1</span>
+                <span><i style="background:#B5652A"></i>Line 2</span>
+                <span><i style="background:#7A4380"></i>Solution point</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL: determinant -->
+      <div class="tool" id="tool-det">
+        <div class="tool-head">
+          <span class="badge">Tool 02</span>
+          <h4>Determinant &amp; singularity calculator</h4>
+          <span class="desc">Type a matrix; get the determinant, the full expansion, and the singular / non-singular verdict.</span>
+        </div>
+        <div class="tool-body">
+          <div class="btnrow" style="margin-bottom:16px;">
+            <button class="btn primary" id="detTab2" onclick="setDetSize(2)">2 × 2</button>
+            <button class="btn" id="detTab3" onclick="setDetSize(3)">3 × 3</button>
+          </div>
+          <div class="tool-layout">
+            <div id="detMatrixWrap"></div>
+            <div class="controls">
+              <div class="readout" id="detOut"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRACTICE W1 -->
+      <h3 class="topic" id="w1-practice">Practice — Week 1</h3>
+      <div data-quiz>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q1</span><span class="qtext">Which matrix is <em>singular</em>?</span></div>
+          <div class="opts">
+            <button class="opt">\(\begin{bmatrix}1&2\\3&4\end{bmatrix}\)</button>
+            <button class="opt">\(\begin{bmatrix}2&4\\1&2\end{bmatrix}\)</button>
+            <button class="opt">\(\begin{bmatrix}1&0\\0&1\end{bmatrix}\)</button>
+          </div>
+          <div class="explain"><b>Singular when det = 0.</b> For the second matrix, \(\det = 2\cdot2 - 4\cdot1 = 0\); its second row is half the first, so the rows are linearly dependent.</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q2</span><span class="qtext">Two lines are <em>parallel but distinct</em>. The system is…</span></div>
+          <div class="opts">
+            <button class="opt">non-singular with one solution</button>
+            <button class="opt">singular &amp; redundant (infinite solutions)</button>
+            <button class="opt">singular &amp; contradictory (no solutions)</button>
+          </div>
+          <div class="explain">Parallel distinct lines never meet → <b>no solution → contradictory</b>. Both contradictory and redundant systems are singular (det = 0).</div>
+        </div>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q3</span><span class="qtext">\(\det\begin{bmatrix}3&1\\6&2\end{bmatrix}\) equals…</span></div>
+          <div class="opts">
+            <button class="opt">12</button>
+            <button class="opt">0</button>
+            <button class="opt">6</button>
+          </div>
+          <div class="explain">\(3\cdot2 - 1\cdot6 = 6-6 = 0\). The matrix is singular — row 2 is exactly twice row 1.</div>
+        </div>
+        <div class="quiz" data-correct="0">
+          <div class="qhead"><span class="qnum">Q4</span><span class="qtext">Changing the constants \(c_1, c_2\) on the right-hand side of a system can change…</span></div>
+          <div class="opts">
+            <button class="opt">the <em>location</em> of the solution, but not singularity</button>
+            <button class="opt">whether the coefficient matrix is singular</button>
+            <button class="opt">the determinant of the coefficient matrix</button>
+          </div>
+          <div class="explain">Singularity and the determinant depend only on the <b>coefficient matrix</b>. Constants shift the lines/planes around but don't change their slopes, so they can move where solutions are without affecting singularity.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== WEEK 2 -->
+    <section class="week" id="w2">
+      <div class="week-head">
+        <div class="week-num">Week 2</div>
+        <div>
+          <h2>Solving Systems of Linear Equations</h2>
+          <div class="sub">Elimination · row operations · rank · row echelon form &amp; RREF</div>
+        </div>
+      </div>
+
+      <div class="ml-callout">
+        <div class="ico">🗜️</div>
+        <div>
+          <div class="ml-tag">Why ML cares</div>
+          <h4>Image compression = reducing rank</h4>
+          <p>A high-rank image matrix carries lots of independent information. Many compression methods deliberately <strong>lower the rank</strong> — keeping only the most informative directions — to shrink files while preserving what the eye notices. Rank measures how much genuinely independent information a matrix holds.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w2-elim">The elimination method</h3>
+      <p>Solving a system means peeling away variables one at a time. You're allowed three reversible moves that never change the solution set:</p>
+      <div class="card">
+        <div class="keyval">
+          <dt>① Swap</dt><dd>Exchange two rows (reorder equations).</dd>
+          <dt>② Scale</dt><dd>Multiply a row by a non-zero scalar.</dd>
+          <dt>③ Combine</dt><dd>Add a multiple of one row to another.</dd>
+        </div>
+        <p class="note">These are the <strong>elementary row operations</strong>. Repeatedly applying them is Gaussian elimination.</p>
+      </div>
+      <h4>Watch for the singular cases</h4>
+      <ul>
+        <li><strong>Redundant</strong>: a row becomes all zeros (\(0 = 0\)) → infinitely many solutions.</li>
+        <li><strong>Contradictory</strong>: a row becomes \(0 = k\) with \(k\neq 0\) → no solutions.</li>
+      </ul>
+
+      <h3 class="topic" id="w2-rank">Rank of a matrix</h3>
+      <div class="def">
+        <span class="def-term">Rank</span> — the number of <strong>linearly independent rows</strong> (equivalently, columns), i.e. the amount of genuinely independent information the system carries. It equals the number of <strong>pivots</strong> after row reduction.
+      </div>
+      <table class="cmp">
+        <tr><th>n × n matrix</th><th>Rank</th><th>Status</th></tr>
+        <tr><td>All rows independent</td><td><code>= n</code> (full rank)</td><td class="tag-non">non-singular</td></tr>
+        <tr><td>Some dependence</td><td><code>&lt; n</code></td><td class="tag-sing">singular</td></tr>
+      </table>
+      <p>Intuition from the course: rank counts the pieces of independent information. A 2×2 matrix whose second row repeats the first has rank 1 — only one real equation.</p>
+
+      <h3 class="topic" id="w2-ref">Row echelon form &amp; RREF</h3>
+      <div class="grid2">
+        <div class="card">
+          <h4>Row Echelon Form (REF)</h4>
+          <ul>
+            <li>All-zero rows sit at the bottom.</li>
+            <li>Each leading entry (<strong>pivot</strong>) is to the right of the one above it — a staircase.</li>
+            <li>Entries <em>below</em> each pivot are zero.</li>
+          </ul>
+          <p class="note">Number of non-zero rows = rank.</p>
+        </div>
+        <div class="card">
+          <h4>Reduced Row Echelon Form (RREF)</h4>
+          <ul>
+            <li>Everything in REF, plus:</li>
+            <li>Every pivot equals <strong>1</strong>.</li>
+            <li>Each pivot is the <em>only</em> non-zero entry in its column.</li>
+          </ul>
+          <p class="note">RREF reads off the solution directly — the goal of Gauss–Jordan elimination.</p>
+        </div>
+      </div>
+
+      <details class="worked">
+        <summary><span class="wk-tag">Worked</span> Solve a 2×2 system by elimination, start to finish <span class="chev">▶</span></summary>
+        <div class="wbody">
+          <p class="note" style="margin-top:6px;">Solve \(\;2x + 3y = 8\;\) and \(\;x - y = -1\).</p>
+          <div class="step"><div class="sn">1</div><div class="sc">Write the augmented matrix: \(\left[\begin{array}{cc|c}2&3&8\\1&-1&-1\end{array}\right]\).</div></div>
+          <div class="step"><div class="sn">2</div><div class="sc">Swap rows so the pivot is a clean 1: \(\;R_1 \leftrightarrow R_2 \Rightarrow \left[\begin{array}{cc|c}1&-1&-1\\2&3&8\end{array}\right]\).</div></div>
+          <div class="step"><div class="sn">3</div><div class="sc">Eliminate \(x\) from row 2: \(\;R_2 \to R_2 - 2R_1 \Rightarrow \left[\begin{array}{cc|c}1&-1&-1\\0&5&10\end{array}\right]\).</div></div>
+          <div class="step"><div class="sn">4</div><div class="sc">Back-substitute: row 2 says \(5y = 10 \Rightarrow y = 2\). Row 1 says \(x - y = -1 \Rightarrow x = -1 + 2 = 1\).</div></div>
+          <div class="step"><div class="sn">5</div><div class="sc">Solution \((x,y) = (\mathbf{1},\mathbf{2})\). Two pivots ⇒ <b>rank 2 ⇒ non-singular ⇒ unique solution</b>. (Try these numbers in Tool 03 below to watch the steps.)</div></div>
+        </div>
+      </details>
+
+      <!-- TOOL: row reduction -->
+      <div class="tool" id="tool-rref">
+        <div class="tool-head">
+          <span class="badge">Tool 03</span>
+          <h4>Row-reduction stepper</h4>
+          <span class="desc">Reduce a 3×3 (or 3×4 augmented) matrix to RREF one operation at a time, and read off the rank.</span>
+        </div>
+        <div class="tool-body">
+          <div class="btnrow" style="margin-bottom:16px;">
+            <button class="btn primary" id="rrTab3" onclick="setRRSize(3)">3 × 3</button>
+            <button class="btn" id="rrTab4" onclick="setRRSize(4)">3 × 4 (augmented)</button>
+          </div>
+          <div class="tool-layout">
+            <div id="rrMatrixWrap"></div>
+            <div class="controls">
+              <div class="btnrow">
+                <button class="btn primary" onclick="rrStep()">▶ Next step</button>
+                <button class="btn" onclick="rrAll()">⏭ Reduce fully</button>
+                <button class="btn" onclick="rrReset()">↺ Reset</button>
+              </div>
+              <div class="readout" id="rrOut" style="min-height:130px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRACTICE W2 -->
+      <h3 class="topic" id="w2-practice">Practice — Week 2</h3>
+      <div data-quiz>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q5</span><span class="qtext">During elimination a row becomes \(0 = 5\). The system is…</span></div>
+          <div class="opts">
+            <button class="opt">redundant (infinite solutions)</button>
+            <button class="opt">contradictory (no solution)</button>
+            <button class="opt">non-singular (unique solution)</button>
+          </div>
+          <div class="explain"><b>\(0 = 5\) is impossible</b>, so the system has no solution — it's contradictory and therefore singular.</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q6</span><span class="qtext">A 3×3 matrix row-reduces to two pivots and one zero row. Its rank is…</span></div>
+          <div class="opts">
+            <button class="opt">3</button>
+            <button class="opt">0</button>
+            <button class="opt">2</button>
+          </div>
+          <div class="explain">Rank = number of pivots (non-zero rows) = <b>2</b>. Since rank &lt; 3, the matrix is singular.</div>
+        </div>
+        <div class="quiz" data-correct="0">
+          <div class="qhead"><span class="qnum">Q7</span><span class="qtext">Which is <em>not</em> a valid elementary row operation?</span></div>
+          <div class="opts">
+            <button class="opt">Multiply a row by 0</button>
+            <button class="opt">Swap two rows</button>
+            <button class="opt">Add 3× row 1 to row 2</button>
+          </div>
+          <div class="explain">You may only scale by a <b>non-zero</b> scalar. Multiplying a row by 0 destroys information and would change the solution set.</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q8</span><span class="qtext">In RREF, every pivot must be…</span></div>
+          <div class="opts">
+            <button class="opt">any non-zero number</button>
+            <button class="opt">positive</button>
+            <button class="opt">equal to 1 and alone in its column</button>
+          </div>
+          <div class="explain">RREF requires <b>pivots = 1</b> and every other entry in a pivot column to be 0. That's the difference from plain REF.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== WEEK 3 -->
+    <section class="week" id="w3">
+      <div class="week-head">
+        <div class="week-num">Week 3</div>
+        <div>
+          <h2>Vectors &amp; Linear Transformations</h2>
+          <div class="sub">norms · dot product · matrices as transformations · inverses · perceptrons</div>
+        </div>
+      </div>
+
+      <div class="ml-callout">
+        <div class="ico">🤖</div>
+        <div>
+          <div class="ml-tag">Why ML cares</div>
+          <h4>A neuron is a dot product plus a decision</h4>
+          <p>The perceptron — the atom of a neural network — takes inputs \(x\), computes the dot product with weights \(w\), adds a bias \(b\), and fires if the result clears a threshold. Words, images, and sentences all become vectors so models can measure similarity with the dot product.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w3-vectors">Vectors, norms &amp; direction</h3>
+      <p>A <strong>vector</strong> is an arrow with magnitude and direction — or simply an ordered list of numbers, e.g. \((4,3)\). The <strong>norm</strong> measures its length.</p>
+      <div class="grid2">
+        <div class="card">
+          <h4>L2 norm (Euclidean)</h4>
+          <div class="eqbox">\[ \lVert v\rVert_2 = \sqrt{v_1^2 + v_2^2 + \dots + v_n^2} \]</div>
+          <p class="note">Straight-line distance. \((4,3)\) has length \(\sqrt{16+9}=5\).</p>
+        </div>
+        <div class="card">
+          <h4>L1 norm (taxicab)</h4>
+          <div class="eqbox">\[ \lVert v\rVert_1 = |v_1| + |v_2| + \dots + |v_n| \]</div>
+          <p class="note">Distance walking along a grid. \((4,3)\) gives \(4+3=7\).</p>
+        </div>
+      </div>
+      <h4>Vector operations</h4>
+      <div class="card">
+        <div class="keyval">
+          <dt>Sum</dt><dd>\((u_1+v_1,\;u_2+v_2)\) — tip-to-tail; the diagonal of the parallelogram.</dd>
+          <dt>Difference</dt><dd>\((u_1-v_1,\;u_2-v_2)\) — the arrow from \(v\)'s tip to \(u\)'s tip.</dd>
+          <dt>Scalar ×</dt><dd>\(\lambda v = (\lambda v_1, \lambda v_2)\) — stretches the vector; a negative \(\lambda\) flips it.</dd>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w3-dot">The dot product</h3>
+      <p>The dot product turns two vectors into a single number and is the workhorse of ML similarity.</p>
+      <div class="eqbox">\[ u\cdot v = u_1 v_1 + u_2 v_2 + \dots + u_n v_n = \lVert u\rVert\,\lVert v\rVert\cos\theta \]</div>
+      <div class="grid2">
+        <div class="card">
+          <h4>Norm from the dot product</h4>
+          <div class="eqbox">\[ \lVert v\rVert = \sqrt{v\cdot v} \]</div>
+        </div>
+        <div class="card">
+          <h4>Orthogonality test</h4>
+          <div class="eqbox">\[ u\cdot v = 0 \;\Longleftrightarrow\; u \perp v \]</div>
+          <p class="note">A dot product of zero means the vectors meet at 90°.</p>
+        </div>
+      </div>
+      <p class="note">A linear equation \(a_1x_1 + a_2x_2 = b\) is itself a dot product: \((a_1,a_2)\cdot(x_1,x_2)=b\).</p>
+
+      <!-- TOOL: vectors -->
+      <div class="tool" id="tool-vec">
+        <div class="tool-head">
+          <span class="badge">Tool 04</span>
+          <h4>Vector playground</h4>
+          <span class="desc">Drag the two vectors. See the sum, difference, both norms, the dot product, and the angle between them update live.</span>
+        </div>
+        <div class="tool-body">
+          <div class="tool-layout">
+            <canvas id="vecCanvas" width="360" height="360"></canvas>
+            <div class="controls">
+              <div class="field-row">
+                <span style="font-family:var(--mono);color:var(--teal);font-weight:600;">u</span>
+                <div class="field"><label>uₓ</label><input class="minput" id="V_ux" value="4"></div>
+                <div class="field"><label>u_y</label><input class="minput" id="V_uy" value="1"></div>
+                <span style="font-family:var(--mono);color:var(--ochre);font-weight:600;margin-left:8px;">v</span>
+                <div class="field"><label>vₓ</label><input class="minput" id="V_vx" value="1"></div>
+                <div class="field"><label>v_y</label><input class="minput" id="V_vy" value="3"></div>
+              </div>
+              <div class="btnrow">
+                <button class="btn" id="vecSum" onclick="toggleVec('sum')">Show u + v</button>
+                <button class="btn" id="vecDiff" onclick="toggleVec('diff')">Show u − v</button>
+              </div>
+              <div class="readout" id="vecOut"></div>
+              <div class="legend">
+                <span><i style="background:#1E6E66"></i>u</span>
+                <span><i style="background:#B5652A"></i>v</span>
+                <span><i style="background:#7A4380"></i>result</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w3-trans">Matrices as linear transformations</h3>
+      <p>A matrix doesn't just store numbers — it <strong>moves space</strong>. Multiplying every point by a matrix \(A\) stretches, rotates, shears, or reflects the plane while keeping the origin fixed and grid lines straight and evenly spaced.</p>
+      <div class="card">
+        <p>The columns of \(A\) tell you exactly where the basis vectors land:</p>
+        <div class="eqbox">\[ A = \begin{bmatrix} a & b \\ c & d \end{bmatrix} \;\Rightarrow\; \hat\imath \mapsto \begin{bmatrix} a \\ c \end{bmatrix},\quad \hat\jmath \mapsto \begin{bmatrix} b \\ d \end{bmatrix} \]</div>
+        <p class="note">Knowing where \(\hat\imath\) and \(\hat\jmath\) go determines where <em>everything</em> goes.</p>
+      </div>
+      <h4>Composing transformations = matrix multiplication</h4>
+      <p>Doing transformation \(B\) then \(A\) is the single transformation \(AB\). This is <em>why</em> matrices multiply the way they do — and why order matters (\(AB \neq BA\) in general).</p>
+      <div class="def">
+        <span class="def-term">Identity matrix \(I\)</span> — the "do nothing" transformation. Ones on the diagonal, zeros elsewhere; \(IA = AI = A\).
+      </div>
+
+      <h3 class="topic" id="w3-inv">Matrix inverses</h3>
+      <p>The <strong>inverse</strong> \(A^{-1}\) undoes what \(A\) does, so applying both returns you to the start:</p>
+      <div class="eqbox">\[ A\,A^{-1} = A^{-1}A = I \]</div>
+      <div class="grid2">
+        <div class="card">
+          <h4>2 × 2 inverse formula</h4>
+          <div class="eqbox">\[ A^{-1} = \frac{1}{ad-bc}\begin{bmatrix} d & -b \\ -c & a \end{bmatrix} \]</div>
+          <p class="note">Swap the diagonal, negate the off-diagonal, divide by the determinant.</p>
+        </div>
+        <div class="card">
+          <h4>Which matrices have inverses?</h4>
+          <p>Only <span class="tag-non">non-singular</span> ones. If \(\det A = 0\) you'd divide by zero — a singular transformation squashes space and cannot be reversed.</p>
+        </div>
+      </div>
+
+      <details class="worked">
+        <summary><span class="wk-tag">Worked</span> Find and verify a 2×2 inverse <span class="chev">▶</span></summary>
+        <div class="wbody">
+          <p class="note" style="margin-top:6px;">Invert \(A=\begin{bmatrix}4&7\\2&6\end{bmatrix}\).</p>
+          <div class="step"><div class="sn">1</div><div class="sc">Determinant: \(\det = (4)(6)-(7)(2) = 24 - 14 = 10\). It is non-zero, so the inverse exists.</div></div>
+          <div class="step"><div class="sn">2</div><div class="sc">Apply the formula — swap the diagonal, negate the off-diagonal, divide by the determinant: \[ A^{-1} = \frac{1}{10}\begin{bmatrix}6&-7\\-2&4\end{bmatrix} \]</div></div>
+          <div class="step"><div class="sn">3</div><div class="sc">So \(A^{-1} = \begin{bmatrix}0.6&-0.7\\-0.2&0.4\end{bmatrix}\).</div></div>
+          <div class="step"><div class="sn">4</div><div class="sc">Verify \(AA^{-1}=I\): top-left entry \(= (4)(0.6)+(7)(-0.2) = 2.4 - 1.4 = 1\) ✓; top-right \(= (4)(-0.7)+(7)(0.4) = -2.8 + 2.8 = 0\) ✓. The product is the identity, as required.</div></div>
+        </div>
+      </details>
+
+      <!-- TOOL: transformation lab -->
+      <div class="tool" id="tool-trans">
+        <div class="tool-head">
+          <span class="badge">Tool 05</span>
+          <h4>Linear-transformation lab</h4>
+          <span class="desc">Set a 2×2 matrix and watch the grid, the unit square, and the basis vectors transform. The determinant is the area-scaling factor.</span>
+        </div>
+        <div class="tool-body">
+          <div class="tool-layout">
+            <canvas id="transCanvas" width="380" height="380"></canvas>
+            <div class="controls">
+              <div class="matrix-input m2">
+                <input class="minput" id="T_a" value="1">
+                <input class="minput" id="T_b" value="1">
+                <input class="minput" id="T_c" value="0">
+                <input class="minput" id="T_d" value="1">
+              </div>
+              <div class="slider-row">a&nbsp;<input type="range" id="S_a" min="-3" max="3" step="0.1" value="1"><span id="SV_a">1.0</span></div>
+              <div class="slider-row">b&nbsp;<input type="range" id="S_b" min="-3" max="3" step="0.1" value="1"><span id="SV_b">1.0</span></div>
+              <div class="slider-row">c&nbsp;<input type="range" id="S_c" min="-3" max="3" step="0.1" value="0"><span id="SV_c">0.0</span></div>
+              <div class="slider-row">d&nbsp;<input type="range" id="S_d" min="-3" max="3" step="0.1" value="1"><span id="SV_d">1.0</span></div>
+              <div class="readout" id="transOut"></div>
+              <div class="btnrow">
+                <button class="btn primary" onclick="transAnimate()">▶ Animate morph</button>
+              </div>
+              <div class="btnrow">
+                <button class="btn" onclick="transPreset(1,0,0,1)">Identity</button>
+                <button class="btn" onclick="transPreset(0,-1,1,0)">Rotate 90°</button>
+                <button class="btn" onclick="transPreset(1,1,0,1)">Shear</button>
+                <button class="btn" onclick="transPreset(2,0,0,2)">Scale ×2</button>
+                <button class="btn" onclick="transPreset(-1,0,0,1)">Reflect</button>
+                <button class="btn" onclick="transPreset(1,2,2,4)">Singular</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRACTICE W3 -->
+      <h3 class="topic" id="w3-practice">Practice — Week 3</h3>
+      <div data-quiz>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q9</span><span class="qtext">The L2 norm of \((6,8)\) is…</span></div>
+          <div class="opts">
+            <button class="opt">14</button>
+            <button class="opt">10</button>
+            <button class="opt">48</button>
+          </div>
+          <div class="explain">\(\sqrt{6^2+8^2}=\sqrt{36+64}=\sqrt{100}=10\).</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q10</span><span class="qtext">\((3,-2)\cdot(2,3)\) equals…</span></div>
+          <div class="opts">
+            <button class="opt">12</button>
+            <button class="opt">−12</button>
+            <button class="opt">0</button>
+          </div>
+          <div class="explain">\(3\cdot2 + (-2)\cdot3 = 6-6 = 0\). The dot product is zero, so the two vectors are <b>orthogonal</b>.</div>
+        </div>
+        <div class="quiz" data-correct="0">
+          <div class="qhead"><span class="qnum">Q11</span><span class="qtext">The columns of a 2×2 matrix tell you…</span></div>
+          <div class="opts">
+            <button class="opt">where \(\hat\imath\) and \(\hat\jmath\) land after the transformation</button>
+            <button class="opt">the eigenvalues directly</button>
+            <button class="opt">the L1 norm of each row</button>
+          </div>
+          <div class="explain">The first column is the image of \(\hat\imath = (1,0)\) and the second column is the image of \(\hat\jmath = (0,1)\). That fully defines the transformation.</div>
+        </div>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q12</span><span class="qtext">A matrix with \(\det = 0\) has an inverse?</span></div>
+          <div class="opts">
+            <button class="opt">Yes, always</button>
+            <button class="opt">No — it is singular and non-invertible</button>
+            <button class="opt">Only if it is 2×2</button>
+          </div>
+          <div class="explain">The 2×2 inverse divides by \(ad-bc\). If that determinant is 0 the inverse is undefined — a singular transformation collapses space and can't be undone.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== WEEK 4 -->
+    <section class="week" id="w4">
+      <div class="week-head">
+        <div class="week-num">Week 4</div>
+        <div>
+          <h2>Determinants &amp; Eigenvectors</h2>
+          <div class="sub">determinant as area · bases &amp; span · eigenvalues/vectors · null space · PCA</div>
+        </div>
+      </div>
+
+      <div class="ml-callout">
+        <div class="ico">📉</div>
+        <div>
+          <div class="ml-tag">Why ML cares</div>
+          <h4>PCA finds the directions that matter</h4>
+          <p>Principal Component Analysis compresses high-dimensional data by keeping the directions of greatest variance. Those directions are the <strong>eigenvectors</strong> of the data's covariance matrix, ranked by their <strong>eigenvalues</strong>. Eigenvectors are how machines decide what to keep and what to throw away.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w4-area">The determinant as an area</h3>
+      <p>Geometrically, the determinant is the <strong>factor by which a transformation scales area</strong> (volume in 3D). The unit square has area 1; after applying \(A\), its area becomes \(|\det A|\).</p>
+      <div class="card">
+        <div class="keyval">
+          <dt>\(\det = 2\)</dt><dd>areas double.</dd>
+          <dt>\(\det = 1\)</dt><dd>areas preserved (e.g. rotations, shears).</dd>
+          <dt>\(\det = 0\)</dt><dd>space collapses onto a line/point — <span class="tag-sing">singular</span>.</dd>
+          <dt>\(\det &lt; 0\)</dt><dd>area scales by \(|\det|\) <em>and</em> orientation flips (a reflection).</dd>
+        </div>
+      </div>
+      <h4>Determinant identities</h4>
+      <div class="grid2">
+        <div class="card"><div class="eqbox" style="margin:4px 0;">\[ \det(AB) = \det(A)\det(B) \]</div><p class="note">Compose two transformations, multiply their area factors.</p></div>
+        <div class="card"><div class="eqbox" style="margin:4px 0;">\[ \det(A^{-1}) = \frac{1}{\det(A)} \]</div><p class="note">Undoing a transformation inverts its area factor. \(\det(I)=1\).</p></div>
+      </div>
+      <p class="note">Corollary: if either factor is singular, the product is singular — you can't un-squash space.</p>
+
+      <h3 class="topic" id="w4-basis">Bases, span &amp; dimension</h3>
+      <div class="def"><span class="def-term">Span</span> — every point you can reach by scaling and adding a set of vectors.</div>
+      <div class="def"><span class="def-term">Basis</span> — a <strong>minimal</strong> spanning set: enough vectors to reach everything, with none redundant (they must be linearly independent).</div>
+      <div class="def"><span class="def-term">Dimension</span> — the number of vectors in a basis.</div>
+      <p>Two independent vectors form a basis for the plane (dimension 2). If one is a multiple of the other, they only span a line — not a basis for the plane.</p>
+
+      <h3 class="topic" id="w4-eigen">Eigenvalues &amp; eigenvectors</h3>
+      <p>Most vectors change direction under a transformation. A few special ones — the <strong>eigenvectors</strong> — stay on their own line; they only get stretched or squashed by a factor called the <strong>eigenvalue</strong>.</p>
+      <div class="eqbox">\[ A\,v = \lambda\,v \qquad (v \neq 0) \]</div>
+      <div class="card">
+        <h4>How to find them</h4>
+        <p><strong>Step 1 — eigenvalues.</strong> Solve the characteristic equation:</p>
+        <div class="eqbox">\[ \det(A - \lambda I) = 0 \]</div>
+        <p>For a 2×2 matrix this becomes a quadratic:</p>
+        <div class="eqbox">\[ \lambda^2 - (a+d)\,\lambda + (ad-bc) = 0 \]</div>
+        <p class="note">The coefficients are the <strong>trace</strong> \((a+d)\) and the <strong>determinant</strong> \((ad-bc)\).</p>
+        <p><strong>Step 2 — eigenvectors.</strong> For each \(\lambda\), solve \((A-\lambda I)v = 0\) to find the directions that survive. The eigenvectors form an <strong>eigenbasis</strong> in which the transformation is just stretching along axes.</p>
+      </div>
+
+      <details class="worked">
+        <summary><span class="wk-tag">Worked</span> Find the eigenvalues and eigenvectors of a 2×2 matrix <span class="chev">▶</span></summary>
+        <div class="wbody">
+          <p class="note" style="margin-top:6px;">Take \(A=\begin{bmatrix}2&1\\1&2\end{bmatrix}\).</p>
+          <div class="step"><div class="sn">1</div><div class="sc">Build the characteristic equation \(\det(A-\lambda I)=0\): \[ \det\begin{bmatrix}2-\lambda&1\\1&2-\lambda\end{bmatrix} = (2-\lambda)^2 - 1 = 0 \]</div></div>
+          <div class="step"><div class="sn">2</div><div class="sc">Expand: \((2-\lambda)^2 = 1 \Rightarrow 2-\lambda = \pm 1\). So the <b>eigenvalues</b> are \(\lambda_1 = 3\) and \(\lambda_2 = 1\). Check: their sum \(3+1=4\) is the trace, and product \(3\cdot1=3\) is the determinant. ✓</div></div>
+          <div class="step"><div class="sn">3</div><div class="sc">Eigenvector for \(\lambda_1=3\): solve \((A-3I)v=0 \Rightarrow \begin{bmatrix}-1&1\\1&-1\end{bmatrix}v=0\), giving \(-v_1+v_2=0\), i.e. \(v_1=v_2\). Eigenvector \(v_1 = (1,1)\).</div></div>
+          <div class="step"><div class="sn">4</div><div class="sc">Eigenvector for \(\lambda_2=1\): solve \((A-I)v=0 \Rightarrow \begin{bmatrix}1&1\\1&1\end{bmatrix}v=0\), giving \(v_1+v_2=0\). Eigenvector \(v_2 = (1,-1)\).</div></div>
+          <div class="step"><div class="sn">5</div><div class="sc">Interpretation: along \((1,1)\) the matrix stretches by \(\times 3\); along the perpendicular \((1,-1)\) it leaves length unchanged \((\times 1)\). Enter this matrix in Tool 06 to see those two lines drawn.</div></div>
+        </div>
+      </details>
+
+      <!-- TOOL: eigen -->
+      <div class="tool" id="tool-eigen">
+        <div class="tool-head">
+          <span class="badge">Tool 06</span>
+          <h4>Eigenvector explorer</h4>
+          <span class="desc">Enter a 2×2 matrix. Get the characteristic equation, eigenvalues, and eigenvectors — drawn as the lines that don't rotate.</span>
+        </div>
+        <div class="tool-body">
+          <div class="tool-layout">
+            <canvas id="eigenCanvas" width="360" height="360"></canvas>
+            <div class="controls">
+              <div class="matrix-input m2">
+                <input class="minput" id="E_a" value="2">
+                <input class="minput" id="E_b" value="1">
+                <input class="minput" id="E_c" value="1">
+                <input class="minput" id="E_d" value="2">
+              </div>
+              <div class="readout" id="eigenOut"></div>
+              <div class="btnrow">
+                <button class="btn" onclick="eigenPreset(2,1,1,2)">Symmetric</button>
+                <button class="btn" onclick="eigenPreset(3,0,0,1)">Diagonal</button>
+                <button class="btn" onclick="eigenPreset(2,1,0,2)">Repeated λ</button>
+                <button class="btn" onclick="eigenPreset(0,-1,1,0)">Rotation</button>
+              </div>
+              <div class="legend">
+                <span><i style="background:#7A4380"></i>eigen-directions</span>
+                <span><i style="background:#cbb9a0"></i>other vectors</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w4-null">Null space &amp; orthogonal matrices</h3>
+      <div class="grid2">
+        <div class="card">
+          <h4>Null space</h4>
+          <div class="eqbox" style="margin:6px 0;">\[ \text{Null}(A) = \{\,v : A v = 0\,\} \]</div>
+          <p>The set of vectors that \(A\) sends to the origin. A non-singular matrix has only \(\{0\}\) in its null space; a singular matrix has a whole line or plane of solutions — which is why singular systems have infinitely many solutions.</p>
+        </div>
+        <div class="card">
+          <h4>Orthogonal matrix</h4>
+          <div class="eqbox" style="margin:6px 0;">\[ Q^{\mathsf T} Q = I \]</div>
+          <p>Columns are mutually orthogonal unit vectors. \(Q\) preserves lengths and angles — it only rotates or reflects, never stretches. Hugely useful in PCA and numerically stable algorithms.</p>
+        </div>
+      </div>
+
+      <h3 class="topic" id="w4-pca">Putting it together — PCA</h3>
+      <div class="card">
+        <p>Principal Component Analysis is where the whole course converges:</p>
+        <ol>
+          <li>Center the data and build the <strong>covariance matrix</strong> (symmetric).</li>
+          <li>Find its <strong>eigenvectors</strong> (the principal directions) and <strong>eigenvalues</strong> (variance along each).</li>
+          <li>Keep the top few eigenvectors — the directions of greatest spread — and project the data onto them.</li>
+        </ol>
+        <p class="note">Determinants told you when this is possible, dot products measure the projections, and eigenvectors pick the directions worth keeping. That's linear algebra doing dimensionality reduction.</p>
+      </div>
+
+      <div class="tool" id="tool-pca">
+        <div class="tool-head">
+          <span class="badge">Tool 07</span>
+          <h4>PCA / SVD image compression</h4>
+          <span class="desc">Keep only the top singular values of an image — exactly the rank-reduction in your compression project. Fewer components, less storage, slight blur.</span>
+        </div>
+        <div class="tool-body">
+          <div class="pca-layout">
+            <div>
+              <div class="pca-cap">Original</div>
+              <canvas id="pcaOrig" width="176" height="176" class="pca-canvas"></canvas>
+            </div>
+            <div>
+              <div class="pca-cap">Rank-<span id="pcaK">8</span> reconstruction</div>
+              <canvas id="pcaRecon" width="176" height="176" class="pca-canvas"></canvas>
+            </div>
+            <div class="controls">
+              <div class="slider-row" style="font-family:var(--sans);font-size:13px;">components&nbsp;k&nbsp;<input type="range" id="pcaSlider" min="1" max="48" value="8"><span id="pcaKv">8</span></div>
+              <div class="readout" id="pcaOut"></div>
+              <div>
+                <div class="pca-cap">Singular-value spectrum (kept in purple)</div>
+                <div id="pcaSpectrum" class="pca-spectrum"></div>
+              </div>
+              <div class="btnrow">
+                <button class="btn primary" onclick="pcaPick('smiley')">Smiley</button>
+                <button class="btn" onclick="pcaPick('lambda')">Symbol λ</button>
+                <button class="btn" onclick="pcaPick('gradient')">Smooth (low-rank)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRACTICE W4 -->
+      <h3 class="topic" id="w4-practice">Practice — Week 4</h3>
+      <div data-quiz>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q13</span><span class="qtext">A transformation has \(\det = 0\). Geometrically it…</span></div>
+          <div class="opts">
+            <button class="opt">doubles every area</button>
+            <button class="opt">collapses space onto a line or point</button>
+            <button class="opt">rotates without scaling</button>
+          </div>
+          <div class="explain">\(\det = 0\) means the area-scaling factor is zero — the transformation flattens 2D space, so it's singular and non-invertible.</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q14</span><span class="qtext">If \(\det A = 3\) and \(\det B = 4\), then \(\det(AB)\) is…</span></div>
+          <div class="opts">
+            <button class="opt">7</button>
+            <button class="opt">1</button>
+            <button class="opt">12</button>
+          </div>
+          <div class="explain">\(\det(AB)=\det(A)\det(B)=3\times4=12\).</div>
+        </div>
+        <div class="quiz" data-correct="0">
+          <div class="qhead"><span class="qnum">Q15</span><span class="qtext">For \(A=\begin{bmatrix}2&0\\0&3\end{bmatrix}\), the eigenvalues are…</span></div>
+          <div class="opts">
+            <button class="opt">2 and 3</button>
+            <button class="opt">0 and 6</button>
+            <button class="opt">5 and 1</button>
+          </div>
+          <div class="explain">For a diagonal matrix the eigenvalues are simply the diagonal entries: <b>2 and 3</b>, with eigenvectors along the x- and y-axes.</div>
+        </div>
+        <div class="quiz" data-correct="1">
+          <div class="qhead"><span class="qnum">Q16</span><span class="qtext">In the characteristic equation \(\lambda^2-(a+d)\lambda+(ad-bc)=0\), the constant term is the…</span></div>
+          <div class="opts">
+            <button class="opt">trace</button>
+            <button class="opt">determinant</button>
+            <button class="opt">rank</button>
+          </div>
+          <div class="explain">The \(\lambda\)-coefficient is the trace \((a+d)\); the constant term is the <b>determinant</b> \((ad-bc)\). So the product of the eigenvalues equals the determinant.</div>
+        </div>
+        <div class="quiz" data-correct="2">
+          <div class="qhead"><span class="qnum">Q17</span><span class="qtext">PCA's principal components are the…</span></div>
+          <div class="opts">
+            <button class="opt">rows of the data matrix</button>
+            <button class="opt">null space vectors</button>
+            <button class="opt">eigenvectors of the covariance matrix</button>
+          </div>
+          <div class="explain">PCA keeps the top eigenvectors of the covariance matrix — the directions of greatest variance, ranked by eigenvalue.</div>
+        </div>
+        <div class="quiz" data-correct="0">
+          <div class="qhead"><span class="qnum">Q18</span><span class="qtext">A non-singular matrix's null space contains…</span></div>
+          <div class="opts">
+            <button class="opt">only the zero vector</button>
+            <button class="opt">a whole line of vectors</button>
+            <button class="opt">every vector in the plane</button>
+          </div>
+          <div class="explain">Only \(\{0\}\). If a non-zero vector were sent to the origin, the transformation would be collapsing space and would be singular.</div>
+        </div>
+      </div>
+
+      <h4 style="margin-top:36px;">Quick recall — reveal the answers</h4>
+      <div class="reveal-q">
+        <div class="qtext">📝 In one sentence: what is an eigenvector, and what does its eigenvalue tell you?</div>
+        <button class="btn" style="margin-top:10px;" onclick="this.nextElementSibling.classList.toggle('show')">Reveal answer</button>
+        <div class="ans">An eigenvector is a non-zero vector whose direction is unchanged by the transformation; its eigenvalue \(\lambda\) is the factor by which it is stretched (\(>1\)), shrunk (\(0<\lambda<1\)), or flipped (\(\lambda<0\)). Formally \(Av=\lambda v\).</div>
+      </div>
+      <div class="reveal-q">
+        <div class="qtext">📝 Give three equivalent statements that mean a square matrix \(A\) is non-singular.</div>
+        <button class="btn" style="margin-top:10px;" onclick="this.nextElementSibling.classList.toggle('show')">Reveal answer</button>
+        <div class="ans">\(\det A \neq 0\); the rows (and columns) are linearly independent; \(A\) has full rank; \(A^{-1}\) exists; \(Ax=b\) has exactly one solution; the null space is just \(\{0\}\). (Any three.)</div>
+      </div>
+    </section>
+
+    <!-- ===================================================== PRACTICE LAB -->
+    <section class="week" id="drills">
+      <div class="week-head">
+        <div class="week-num" style="background:var(--ochre);">Lab</div>
+        <div>
+          <h2>Generative Practice Lab</h2>
+          <div class="sub">Endless fresh problems with auto-checking &amp; full working · plus a timed mixed exam</div>
+        </div>
+      </div>
+      <p>Unlike the fixed quizzes above, every problem here is generated with new random numbers — so you can drill until the method is automatic. Type your answer and press <strong>Check</strong> (or Enter); reveal the full worked solution any time.</p>
+
+      <div class="drill" id="drillCard">
+        <div class="drill-head">
+          <span class="badge">Drill</span>
+          <h4 id="drillTitle">Free practice</h4>
+          <div class="drill-stats" id="drillStats">
+            <span>attempted <b id="dsAtt">0</b></span>
+            <span>correct <b id="dsCor">0</b></span>
+            <span>streak <b id="dsStreak">0</b></span>
+          </div>
+        </div>
+        <div class="drill-body">
+          <!-- FREE MODE -->
+          <div id="drillFree">
+            <div class="drill-meta">
+              <select class="select" id="drillType">
+                <option value="random">🎲 Random mix</option>
+                <option value="det2">2×2 determinant</option>
+                <option value="det3">3×3 determinant</option>
+                <option value="dot">Dot product</option>
+                <option value="norm">L2 norm</option>
+                <option value="matvec">Matrix × vector</option>
+                <option value="eigsum">Sum of eigenvalues</option>
+                <option value="invertible">Invertible? (yes/no)</option>
+              </select>
+              <span class="drill-typelabel" id="drillKind">—</span>
+            </div>
+            <div class="drill-prompt" id="drillPrompt"></div>
+            <div class="drill-answer-row" id="drillAnsRow"></div>
+            <div class="drill-feedback" id="drillFeedback"></div>
+            <div class="drill-solution" id="drillSolution"></div>
+            <div class="btnrow" style="margin-top:16px;">
+              <button class="btn" id="drillShow" onclick="Drill.showSolution()">Show working</button>
+              <button class="btn primary" onclick="Drill.next()">New problem →</button>
+              <button class="btn" style="margin-left:auto;" onclick="Drill.startExam()">⏱ Start 10-question exam</button>
+            </div>
+          </div>
+
+          <!-- EXAM MODE -->
+          <div id="drillExam" style="display:none;">
+            <div class="drill-meta" style="justify-content:space-between;">
+              <span class="drill-progress" id="examProgress">Question 1 / 10</span>
+              <span class="timer" id="examTimer">0:00</span>
+            </div>
+            <div class="drill-prompt" id="examPrompt"></div>
+            <div class="drill-answer-row" id="examAnsRow"></div>
+            <div class="drill-feedback" id="examFeedback"></div>
+            <div class="btnrow" style="margin-top:16px;">
+              <button class="btn primary" id="examNext" onclick="Drill.examNext()">Submit →</button>
+              <button class="btn" style="margin-left:auto;" onclick="Drill.quitExam()">Quit exam</button>
+            </div>
+          </div>
+
+          <!-- EXAM RESULT -->
+          <div id="drillResult" style="display:none;">
+            <div class="exam-result">
+              <div class="big" id="resScore">0 / 10</div>
+              <div class="sub" id="resSub"></div>
+            </div>
+            <div class="btnrow" style="justify-content:center;margin-top:10px;">
+              <button class="btn primary" onclick="Drill.startExam()">Retake exam</button>
+              <button class="btn" onclick="Drill.backToFree()">Back to free practice</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="week" id="cheat" style="border-bottom:none;">
+      <div class="week-head">
+        <div class="week-num" style="background:var(--ochre);">Recap</div>
+        <div><h2>Formula Cheat Sheet</h2><div class="sub">Everything worth memorising, on one screen</div></div>
+      </div>
+      <div class="cheat-grid">
+        <div class="cheat">
+          <h4><span class="dot"></span>Determinants</h4>
+          <div class="row">2×2: \(\det=ad-bc\)</div>
+          <div class="row">3×3: \(aei+bfg+cdh-ceg-bdi-afh\)</div>
+          <div class="row">Singular \(\Leftrightarrow \det=0\)</div>
+          <div class="row">\(\det(AB)=\det A\,\det B\)</div>
+          <div class="row">\(\det(A^{-1})=1/\det A\), \(\det I = 1\)</div>
+        </div>
+        <div class="cheat">
+          <h4><span class="dot"></span>Vectors</h4>
+          <div class="row">L2: \(\lVert v\rVert=\sqrt{\sum v_i^2}\)</div>
+          <div class="row">L1: \(\lVert v\rVert_1=\sum|v_i|\)</div>
+          <div class="row">Dot: \(u\cdot v=\sum u_iv_i=\lVert u\rVert\lVert v\rVert\cos\theta\)</div>
+          <div class="row">\(u\perp v \Leftrightarrow u\cdot v = 0\)</div>
+          <div class="row">\(\lVert v\rVert=\sqrt{v\cdot v}\)</div>
+        </div>
+        <div class="cheat">
+          <h4><span class="dot"></span>Matrices</h4>
+          <div class="row">Columns = images of \(\hat\imath,\hat\jmath\)</div>
+          <div class="row">Compose: do \(B\) then \(A\) = \(AB\)</div>
+          <div class="row">\(IA=AI=A\)</div>
+          <div class="row">\(A^{-1}=\frac{1}{ad-bc}\begin{bmatrix}d&-b\\-c&a\end{bmatrix}\)</div>
+          <div class="row">Invertible \(\Leftrightarrow \det\neq0\)</div>
+        </div>
+        <div class="cheat">
+          <h4><span class="dot"></span>Rank &amp; solutions</h4>
+          <div class="row">Rank = # pivots = # independent rows</div>
+          <div class="row">Full rank (\(=n\)) \(\Leftrightarrow\) non-singular</div>
+          <div class="row">REF: staircase, zeros below pivots</div>
+          <div class="row">RREF: pivots = 1, alone in column</div>
+          <div class="row">\(0=k\,(k\neq0)\): contradictory</div>
+        </div>
+        <div class="cheat">
+          <h4><span class="dot"></span>Eigen</h4>
+          <div class="row">\(Av=\lambda v\)</div>
+          <div class="row">Char. eq: \(\det(A-\lambda I)=0\)</div>
+          <div class="row">2×2: \(\lambda^2-(a{+}d)\lambda+(ad{-}bc)=0\)</div>
+          <div class="row">\(\sum\lambda=\) trace, \(\prod\lambda=\det\)</div>
+          <div class="row">Eigenbasis ⇒ diagonal action</div>
+        </div>
+        <div class="cheat">
+          <h4><span class="dot"></span>Spaces &amp; ML</h4>
+          <div class="row">Null(A) = \(\{v: Av=0\}\)</div>
+          <div class="row">Orthogonal: \(Q^{\mathsf T}Q=I\)</div>
+          <div class="row">Basis = minimal spanning set</div>
+          <div class="row">dim = # basis vectors</div>
+          <div class="row">PCA = top eigenvectors of covariance</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p><b>Mathematics for Machine Learning · Linear Algebra (Course 1).</b> Compiled review companion covering Weeks 1–4: Systems of Linear Equations, Solving Systems, Vectors &amp; Linear Transformations, and Determinants &amp; Eigenvectors.</p>
+      <p>Equations rendered with MathJax · interactive tools built with HTML canvas. Tap any practice option to check it; reset progress by reloading.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+/* ============ utilities ============ */
+const $ = id => document.getElementById(id);
+const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+const fmt = (x, d=2) => { const r = Math.round(x*10**d)/10**d; return Object.is(r,-0)?0:r; };
+
+/* ============ mobile menu ============ */
+$('menuBtn').onclick = () => { $('sidebar').classList.toggle('open'); $('scrim').classList.toggle('show'); };
+$('scrim').onclick = () => { $('sidebar').classList.remove('open'); $('scrim').classList.remove('show'); };
+document.querySelectorAll('.nav a').forEach(a => a.addEventListener('click', () => {
+  if (window.innerWidth <= 900) { $('sidebar').classList.remove('open'); $('scrim').classList.remove('show'); }
+}));
+
+/* ============ active nav on scroll ============ */
+const navLinks = [...document.querySelectorAll('.nav a')];
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = navLinks.find(l => l.getAttribute('href') === '#'+e.target.id);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -75% 0px' });
+document.querySelectorAll('section[id], header[id]').forEach(s => obs.observe(s));
+
+/* ===================================================================
+   CANVAS HELPERS — shared coordinate system
+   =================================================================== */
+function makeView(canvas, unit){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const toS = (x,y) => [cx + x*unit, cy - y*unit];
+  return {ctx, W, H, cx, cy, unit, toS};
+}
+function drawGrid(v, range){
+  const {ctx, W, H, cx, cy, unit} = v;
+  ctx.clearRect(0,0,W,H);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#ece3d3';
+  for(let i=-range;i<=range;i++){
+    let [x1,y1]=v.toS(i,-range),[x2,y2]=v.toS(i,range);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    [x1,y1]=v.toS(-range,i);[x2,y2]=v.toS(range,i);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+  ctx.strokeStyle = '#c8bba2'; ctx.lineWidth = 1.5;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+}
+function arrow(v, x, y, color, lw=3, label){
+  const {ctx} = v;
+  const [sx,sy] = v.toS(0,0);
+  const [ex,ey] = v.toS(x,y);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+  const ang = Math.atan2(ey-sy, ex-sx), h=10;
+  ctx.beginPath();
+  ctx.moveTo(ex,ey);
+  ctx.lineTo(ex-h*Math.cos(ang-0.4), ey-h*Math.sin(ang-0.4));
+  ctx.lineTo(ex-h*Math.cos(ang+0.4), ey-h*Math.sin(ang+0.4));
+  ctx.closePath();ctx.fill();
+  if(label){ctx.font='600 13px JetBrains Mono';ctx.fillText(label, ex+6, ey-6);}
+}
+
+/* ===================================================================
+   TOOL 01 — Line system explorer
+   =================================================================== */
+(function(){
+  const c = $('linesCanvas'); if(!c) return;
+  const v = makeView(c, 32);
+  const ids = ['L_a1','L_b1','L_c1','L_a2','L_b2','L_c2'];
+  function drawLine(a,b,cc,color){
+    const R=6;
+    v.ctx.strokeStyle=color; v.ctx.lineWidth=2.5;
+    if(Math.abs(b)>1e-9){
+      const p1=v.toS(-R, (cc-a*(-R))/b), p2=v.toS(R, (cc-a*R)/b);
+      v.ctx.beginPath();v.ctx.moveTo(...p1);v.ctx.lineTo(...p2);v.ctx.stroke();
+    } else if(Math.abs(a)>1e-9){
+      const x=cc/a, p1=v.toS(x,-R), p2=v.toS(x,R);
+      v.ctx.beginPath();v.ctx.moveTo(...p1);v.ctx.lineTo(...p2);v.ctx.stroke();
+    }
+  }
+  function render(){
+    const a1=num('L_a1'),b1=num('L_b1'),c1=num('L_c1'),a2=num('L_a2'),b2=num('L_b2'),c2=num('L_c2');
+    drawGrid(v,6);
+    drawLine(a1,b1,c1,'#1E6E66');
+    drawLine(a2,b2,c2,'#B5652A');
+    const det = a1*b2 - a2*b1;
+    let verdict, cls, detail;
+    if(Math.abs(det)>1e-9){
+      const x=(c1*b2-c2*b1)/det, y=(a1*c2-a2*c1)/det;
+      const [px,py]=v.toS(x,y);
+      v.ctx.fillStyle='#7A4380';v.ctx.beginPath();v.ctx.arc(px,py,6,0,7);v.ctx.fill();
+      v.ctx.strokeStyle='#fff';v.ctx.lineWidth=2;v.ctx.stroke();
+      verdict='Non-singular'; cls='ok';
+      detail=`Unique solution&nbsp; x = <b>${fmt(x)}</b>, y = <b>${fmt(y)}</b>`;
+    } else {
+      // parallel: check consistency via ratio c
+      const consistent = Math.abs(a1*c2 - a2*c1)<1e-9 && Math.abs(b1*c2 - b2*c1)<1e-9;
+      if(consistent){verdict='Singular · redundant'; cls='warn'; detail='Same line → <b>infinitely many</b> solutions';}
+      else {verdict='Singular · contradictory'; cls='warn'; detail='Parallel distinct lines → <b>no</b> solution';}
+    }
+    $('linesOut').innerHTML =
+      `<span class="lbl">det of coefficients</span> = a₁b₂ − a₂b₁ = <b>${fmt(det)}</b><br>`+
+      `<span class="verdict ${cls}">${verdict}</span><br><span style="font-family:var(--sans)">${detail}</span>`;
+  }
+  ids.forEach(i=>$(i).addEventListener('input',render));
+  window.linePreset = t => {
+    const set = o => Object.keys(o).forEach(k=>$(k).value=o[k]);
+    if(t==='unique') set({L_a1:1,L_b1:1,L_c1:2,L_a2:1,L_b2:-1,L_c2:0});
+    if(t==='redundant') set({L_a1:1,L_b1:1,L_c1:2,L_a2:2,L_b2:2,L_c2:4});
+    if(t==='contra') set({L_a1:1,L_b1:1,L_c1:2,L_a2:1,L_b2:1,L_c2:5});
+    render();
+  };
+  render();
+})();
+
+/* ===================================================================
+   TOOL 02 — Determinant calculator
+   =================================================================== */
+let detSize = 2;
+function buildDetInputs(){
+  const wrap = $('detMatrixWrap');
+  const def2 = [['2','1'],['1','3']];
+  const def3 = [['1','1','1'],['1','2','1'],['1','1','2']];
+  const def = detSize===2?def2:def3;
+  let html = `<div class="matrix-input m${detSize}">`;
+  for(let r=0;r<detSize;r++) for(let col=0;col<detSize;col++)
+    html += `<input class="minput det-in" data-r="${r}" data-col="${col}" value="${def[r][col]}">`;
+  html += `</div>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.det-in').forEach(i=>i.addEventListener('input',detCompute));
+  detCompute();
+}
+function getDetMatrix(){
+  const M = Array.from({length:detSize},()=>Array(detSize).fill(0));
+  document.querySelectorAll('.det-in').forEach(i=>{
+    const r=+i.dataset.r, col=+i.dataset.col, val=parseFloat(i.value); M[r][col]=isNaN(val)?0:val;
+  });
+  return M;
+}
+function detCompute(){
+  const M = getDetMatrix(); let det, expand;
+  if(detSize===2){
+    const [a,b]=M[0],[c,d]=M[1];
+    det = a*d-b*c;
+    expand = `det = ad − bc = (${a})(${d}) − (${b})(${c}) = <b>${fmt(det)}</b>`;
+  } else {
+    const [a,b,c]=M[0],[d,e,f]=M[1],[g,h,i]=M[2];
+    det = a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g);
+    expand = `det = a(ei−fh) − b(di−fg) + c(dh−eg)<br>&nbsp;&nbsp;&nbsp;= <b>${fmt(det)}</b>`;
+  }
+  const sing = Math.abs(det)<1e-9;
+  $('detOut').innerHTML = expand +
+    `<br><br><span class="verdict ${sing?'warn':'ok'}">${sing?'Singular (det = 0)':'Non-singular'}</span>`+
+    `<br><span style="font-family:var(--sans);font-size:13px;color:var(--ink-faint)">${sing?'Rows are linearly dependent · no inverse.':'Full rank · invertible · unique solution to Ax = b.'}</span>`;
+}
+function setDetSize(n){
+  detSize=n;
+  $('detTab2').classList.toggle('primary', n===2);
+  $('detTab3').classList.toggle('primary', n===3);
+  buildDetInputs();
+}
+buildDetInputs();
+
+/* ===================================================================
+   TOOL 03 — Row reduction stepper (Gauss–Jordan)
+   =================================================================== */
+let rrSize = 3, rrMat = [], rrLog = [], rrDone = false;
+function rrDefaults(){
+  return rrSize===3
+    ? [[2,1,-1],[ -3,-1,2],[-2,1,2]]
+    : [[2,1,-1,8],[-3,-1,2,-11],[-2,1,2,-3]];
+}
+function buildRRInputs(){
+  rrMat = rrDefaults().map(r=>r.slice());
+  rrLog = []; rrDone=false;
+  const cols = rrSize;
+  let html = `<div class="matrix-input m${rrSize===4?'23':'3'}" id="rrGrid" style="grid-template-columns:repeat(${cols},1fr);">`;
+  for(let r=0;r<3;r++) for(let col=0;col<cols;col++)
+    html += `<input class="minput rr-in" data-r="${r}" data-col="${col}" value="${rrMat[r][col]}">`;
+  html += `</div>`;
+  $('rrMatrixWrap').innerHTML = html;
+  $('rrMatrixWrap').querySelectorAll('.rr-in').forEach(i=>i.addEventListener('input', readRR));
+  renderRR('Ready. Press “Next step” to reduce one operation at a time.');
+}
+function readRR(){
+  document.querySelectorAll('.rr-in').forEach(i=>{
+    const r=+i.dataset.r,col=+i.dataset.col,val=parseFloat(i.value); rrMat[r][col]=isNaN(val)?0:val;
+  });
+  rrLog=[]; rrDone=false;
+}
+function writeRR(){
+  document.querySelectorAll('.rr-in').forEach(i=>{
+    const r=+i.dataset.r,col=+i.dataset.col; i.value = fmt(rrMat[r][col],2);
+  });
+}
+function rankOf(M){
+  let r=0; const tol=1e-7;
+  for(let row=0;row<3;row++) if(M[row].some(x=>Math.abs(x)>tol)) r++;
+  return r;
+}
+function renderRR(msg){
+  const rk = rankOf(rrMat);
+  $('rrOut').innerHTML =
+    `<span style="font-family:var(--sans);color:var(--ink)">${msg}</span><br><br>`+
+    `<span class="lbl">current rank</span> = <b>${rk}</b> &nbsp; `+
+    (rrDone ? `<span class="verdict ${rk<3?'warn':'ok'}">${rk<3?'Singular · rank < 3':'Non-singular · full rank'}</span>`:'')+
+    (rrLog.length?`<br><br><span class="lbl">steps:</span><br>${rrLog.map((s,i)=>`${i+1}. ${s}`).join('<br>')}`:'');
+}
+/* one Gauss–Jordan step */
+function rrStep(){
+  if(rrDone){renderRR('Already in reduced row-echelon form.');return;}
+  const tol=1e-7, cols=rrSize;
+  // find first pivot needing work
+  for(let p=0;p<3;p++){
+    // ensure pivot in column p (using rows >= p)
+    if(Math.abs(rrMat[p][p])<tol){
+      // try swap with a lower row that has nonzero in col p
+      let sw=-1;
+      for(let r=p+1;r<3;r++) if(Math.abs(rrMat[r][p])>tol){sw=r;break;}
+      if(sw>=0){ [rrMat[p],rrMat[sw]]=[rrMat[sw],rrMat[p]]; rrLog.push(`Swap R${p+1} ↔ R${sw+1}`); writeRR(); renderRR('Swapped rows to bring a pivot into place.'); return;}
+      continue; // no pivot here, move on
+    }
+    // normalise pivot to 1
+    if(Math.abs(rrMat[p][p]-1)>tol){
+      const k=rrMat[p][p];
+      rrMat[p]=rrMat[p].map(x=>x/k);
+      rrLog.push(`R${p+1} → R${p+1} ÷ ${fmt(k)}`); writeRR(); renderRR(`Scaled R${p+1} so its pivot is 1.`); return;
+    }
+    // eliminate other rows in column p
+    for(let r=0;r<3;r++){
+      if(r!==p && Math.abs(rrMat[r][p])>tol){
+        const k=rrMat[r][p];
+        rrMat[r]=rrMat[r].map((x,j)=>x-k*rrMat[p][j]);
+        rrLog.push(`R${r+1} → R${r+1} − (${fmt(k)})·R${p+1}`); writeRR(); renderRR(`Cleared column ${p+1} in R${r+1}.`); return;
+      }
+    }
+  }
+  rrDone=true; writeRR(); renderRR('Done — matrix is in reduced row-echelon form.');
+}
+function rrAll(){ let guard=0; while(!rrDone && guard++<60) rrStep(); }
+function rrReset(){ buildRRInputs(); }
+function setRRSize(n){
+  rrSize=n;
+  $('rrTab3').classList.toggle('primary', n===3);
+  $('rrTab4').classList.toggle('primary', n===4);
+  buildRRInputs();
+}
+buildRRInputs();
+
+/* ===================================================================
+   TOOL 04 — Vector playground
+   =================================================================== */
+(function(){
+  const c=$('vecCanvas'); if(!c) return;
+  const v=makeView(c,30);
+  let mode=null; // 'sum' | 'diff'
+  const ids=['V_ux','V_uy','V_vx','V_vy'];
+  function render(){
+    const ux=num('V_ux'),uy=num('V_uy'),vx=num('V_vx'),vy=num('V_vy');
+    drawGrid(v,6);
+    if(mode==='sum'){
+      v.ctx.setLineDash([4,4]);
+      arrow(v,ux,uy,'#cdbfa6',1.5); // faint
+      // draw v translated from u tip
+      const {ctx}=v; const [sx,sy]=v.toS(ux,uy),[ex,ey]=v.toS(ux+vx,uy+vy);
+      ctx.strokeStyle='#cdbfa6';ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+      v.ctx.setLineDash([]);
+      arrow(v,ux+vx,uy+vy,'#7A4380',3,'u+v');
+    }
+    if(mode==='diff'){
+      const {ctx}=v;const [sx,sy]=v.toS(vx,vy),[ex,ey]=v.toS(ux,uy);
+      ctx.strokeStyle='#7A4380';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+      const ang=Math.atan2(ey-sy,ex-sx),h=10;
+      ctx.fillStyle='#7A4380';ctx.beginPath();ctx.moveTo(ex,ey);
+      ctx.lineTo(ex-h*Math.cos(ang-0.4),ey-h*Math.sin(ang-0.4));
+      ctx.lineTo(ex-h*Math.cos(ang+0.4),ey-h*Math.sin(ang+0.4));ctx.closePath();ctx.fill();
+    }
+    arrow(v,ux,uy,'#1E6E66',3,'u');
+    arrow(v,vx,vy,'#B5652A',3,'v');
+    const dot=ux*vx+uy*vy;
+    const nu=Math.hypot(ux,uy), nv=Math.hypot(vx,vy);
+    let ang = (nu>0&&nv>0)? Math.acos(Math.max(-1,Math.min(1,dot/(nu*nv))))*180/Math.PI : NaN;
+    const ortho=Math.abs(dot)<1e-9;
+    $('vecOut').innerHTML=
+      `<span class="lbl">u·v</span> = ${fmt(ux*vx)} + ${fmt(uy*vy)} = <b>${fmt(dot)}</b><br>`+
+      `<span class="lbl">‖u‖₂</span> = <b>${fmt(nu)}</b> &nbsp; <span class="lbl">‖v‖₂</span> = <b>${fmt(nv)}</b><br>`+
+      `<span class="lbl">‖u‖₁</span> = ${fmt(Math.abs(ux)+Math.abs(uy))} &nbsp; <span class="lbl">‖v‖₁</span> = ${fmt(Math.abs(vx)+Math.abs(vy))}<br>`+
+      `<span class="lbl">angle θ</span> = <b>${isNaN(ang)?'—':fmt(ang,1)+'°'}</b> `+
+      (ortho?`<span class="verdict ok">orthogonal (90°)</span>`:'');
+  }
+  ids.forEach(i=>$(i).addEventListener('input',render));
+  window.toggleVec=m=>{
+    mode = (mode===m)?null:m;
+    $('vecSum').classList.toggle('primary', mode==='sum');
+    $('vecDiff').classList.toggle('primary', mode==='diff');
+    render();
+  };
+  // drag support
+  c.addEventListener('pointerdown', e=>{
+    const rect=c.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(c.width/rect.width);
+    const my=(e.clientY-rect.top)*(c.height/rect.height);
+    const wx=(mx-v.cx)/v.unit, wy=(v.cy-my)/v.unit;
+    const du=Math.hypot(wx-num('V_ux'),wy-num('V_uy'));
+    const dv=Math.hypot(wx-num('V_vx'),wy-num('V_vy'));
+    const target = du<dv?['V_ux','V_uy']:['V_vx','V_vy'];
+    const move=ev=>{
+      const r=c.getBoundingClientRect();
+      const x=((ev.clientX-r.left)*(c.width/r.width)-v.cx)/v.unit;
+      const y=(v.cy-(ev.clientY-r.top)*(c.height/r.height))/v.unit;
+      $(target[0]).value=fmt(x,1);$(target[1]).value=fmt(y,1);render();
+    };
+    const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+  });
+  render();
+})();
+
+/* ===================================================================
+   TOOL 05 — Linear transformation lab
+   =================================================================== */
+(function(){
+  const c=$('transCanvas'); if(!c) return;
+  const v=makeView(c,38);
+  const fields=['a','b','c','d'];
+  function syncFromInputs(){
+    fields.forEach(f=>{ $('S_'+f).value=num('T_'+f); $('SV_'+f).textContent=fmt(num('T_'+f),1); });
+  }
+  // render with an explicit matrix (a,b,c,d). showStats=false during animation
+  function draw(a,b,cc,d,showStats){
+    const map=(x,y)=>[a*x+b*y, cc*x+d*y];
+    drawGrid(v,6);
+    v.ctx.strokeStyle='rgba(30,110,102,.28)'; v.ctx.lineWidth=1;
+    for(let i=-6;i<=6;i++){
+      let p1=v.toS(...map(i,-6)),p2=v.toS(...map(i,6));
+      v.ctx.beginPath();v.ctx.moveTo(...p1);v.ctx.lineTo(...p2);v.ctx.stroke();
+      p1=v.toS(...map(-6,i));p2=v.toS(...map(6,i));
+      v.ctx.beginPath();v.ctx.moveTo(...p1);v.ctx.lineTo(...p2);v.ctx.stroke();
+    }
+    const sq=[[0,0],[1,0],[1,1],[0,1]].map(p=>v.toS(...map(p[0],p[1])));
+    v.ctx.fillStyle='rgba(181,101,42,.20)';v.ctx.strokeStyle='#B5652A';v.ctx.lineWidth=2;
+    v.ctx.beginPath();sq.forEach((p,i)=>i?v.ctx.lineTo(...p):v.ctx.moveTo(...p));v.ctx.closePath();v.ctx.fill();v.ctx.stroke();
+    arrow(v,a,cc,'#1E6E66',3,'î');
+    arrow(v,b,d,'#155049',3,'ĵ');
+    if(showStats){
+      const det=a*d-b*cc, sing=Math.abs(det)<1e-9;
+      $('transOut').innerHTML=
+        `<span class="lbl">det</span> = ad − bc = (${fmt(a)})(${fmt(d)}) − (${fmt(b)})(${fmt(cc)}) = <b>${fmt(det)}</b><br>`+
+        `<span style="font-family:var(--sans);font-size:13px">Area scaling ×<b>${fmt(Math.abs(det))}</b>`+
+        (det<0?` · orientation flipped`:``)+`</span><br>`+
+        `<span class="verdict ${sing?'warn':'ok'}">${sing?'Singular — space collapses':'Non-singular — invertible'}</span>`;
+    }
+  }
+  function render(){ draw(num('T_a'),num('T_b'),num('T_c'),num('T_d'),true); }
+  let anim=null;
+  function animateTo(ta,tb,tc,td){
+    if(anim) cancelAnimationFrame(anim);
+    const start=performance.now(), dur=950;
+    const ease=t=>t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    function frame(now){
+      let t=Math.min(1,(now-start)/dur); const e=ease(t);
+      // interpolate from identity (1,0,0,1) to target
+      const a=1+(ta-1)*e, b=0+tb*e, cc=0+tc*e, d=1+(td-1)*e;
+      draw(a,b,cc,d,false);
+      $('transOut').innerHTML=`<span style="font-family:var(--sans);color:var(--ochre);font-weight:600">Morphing… ${Math.round(e*100)}%</span>`;
+      if(t<1) anim=requestAnimationFrame(frame); else { anim=null; render(); }
+    }
+    anim=requestAnimationFrame(frame);
+  }
+  fields.forEach(f=>{
+    $('T_'+f).addEventListener('input',()=>{ $('S_'+f).value=num('T_'+f); $('SV_'+f).textContent=fmt(num('T_'+f),1); render(); });
+    $('S_'+f).addEventListener('input',()=>{ $('T_'+f).value=$('S_'+f).value; $('SV_'+f).textContent=fmt(+$('S_'+f).value,1); render(); });
+  });
+  window.transPreset=(a,b,cc,d)=>{ $('T_a').value=a;$('T_b').value=b;$('T_c').value=cc;$('T_d').value=d; syncFromInputs(); render(); };
+  window.transAnimate=()=>{ animateTo(num('T_a'),num('T_b'),num('T_c'),num('T_d')); };
+  syncFromInputs(); render();
+})();
+
+/* ===================================================================
+   TOOL 06 — Eigenvector explorer
+   =================================================================== */
+(function(){
+  const c=$('eigenCanvas'); if(!c) return;
+  const v=makeView(c,32);
+  const ids=['E_a','E_b','E_c','E_d'];
+  function eigvec(a,b,cc,d,lam){
+    // solve (A-lam I) v = 0
+    let r1=[a-lam,b], r2=[cc,d-lam];
+    if(Math.hypot(r1[0],r1[1])>1e-7) return norm([-r1[1], r1[0]]);
+    if(Math.hypot(r2[0],r2[1])>1e-7) return norm([-r2[1], r2[0]]);
+    return [1,0];
+  }
+  function norm(p){const n=Math.hypot(p[0],p[1]); return n<1e-9?[0,0]:[p[0]/n,p[1]/n];}
+  function render(){
+    const a=num('E_a'),b=num('E_b'),cc=num('E_c'),d=num('E_d');
+    drawGrid(v,6);
+    // sample circle of vectors -> show how they move (faint)
+    const map=(x,y)=>[a*x+b*y, cc*x+d*y];
+    v.ctx.strokeStyle='rgba(203,185,160,.9)';v.ctx.lineWidth=1.5;
+    for(let k=0;k<12;k++){
+      const t=k/12*2*Math.PI, x=Math.cos(t)*2, y=Math.sin(t)*2;
+      const m=map(x,y);
+      const [sx,sy]=v.toS(x,y),[ex,ey]=v.toS(m[0],m[1]);
+      v.ctx.beginPath();v.ctx.moveTo(sx,sy);v.ctx.lineTo(ex,ey);v.ctx.stroke();
+    }
+    const tr=a+d, det=a*d-b*cc, disc=tr*tr-4*det;
+    let out;
+    if(disc<-1e-9){
+      out=`<span class="lbl">char. eq</span> λ² − ${fmt(tr)}λ + ${fmt(det)} = 0<br>`+
+          `<span class="lbl">discriminant</span> = <b>${fmt(disc)}</b> &lt; 0<br>`+
+          `<span class="verdict plum">Complex eigenvalues</span><br>`+
+          `<span style="font-family:var(--sans);font-size:13px">This is a rotation-type map — no real eigenvectors (every direction turns).</span>`;
+    } else {
+      const s=Math.sqrt(Math.max(0,disc));
+      const l1=(tr+s)/2, l2=(tr-s)/2;
+      const v1=eigvec(a,b,cc,d,l1), v2=eigvec(a,b,cc,d,l2);
+      [[v1,l1],[v2,l2]].forEach(([vec,lam])=>{
+        if(Math.hypot(vec[0],vec[1])<1e-9) return;
+        const R=6;
+        const [x1,y1]=v.toS(vec[0]*R,vec[1]*R),[x2,y2]=v.toS(-vec[0]*R,-vec[1]*R);
+        v.ctx.strokeStyle='rgba(122,67,128,.45)';v.ctx.lineWidth=2;
+        v.ctx.beginPath();v.ctx.moveTo(x1,y1);v.ctx.lineTo(x2,y2);v.ctx.stroke();
+        arrow(v,vec[0]*1.6,vec[1]*1.6,'#7A4380',3);
+      });
+      out=`<span class="lbl">char. eq</span> λ² − ${fmt(tr)}λ + ${fmt(det)} = 0<br>`+
+          `<span class="lbl">eigenvalues</span> λ₁ = <b>${fmt(l1)}</b>, λ₂ = <b>${fmt(l2)}</b><br>`+
+          `<span class="lbl">eigenvectors</span><br>`+
+          `&nbsp;v₁ ≈ (${fmt(v1[0])}, ${fmt(v1[1])})<br>`+
+          `&nbsp;v₂ ≈ (${fmt(v2[0])}, ${fmt(v2[1])})`;
+    }
+    $('eigenOut').innerHTML=out;
+  }
+  ids.forEach(i=>$(i).addEventListener('input',render));
+  window.eigenPreset=(a,b,cc,d)=>{ $('E_a').value=a;$('E_b').value=b;$('E_c').value=cc;$('E_d').value=d; render(); };
+  render();
+})();
+
+/* ===================================================================
+   PRACTICE — grading + progress
+   =================================================================== */
+(function(){
+  const quizzes=[...document.querySelectorAll('.quiz')];
+  let answered=0;
+  $('pnum').textContent = `0 / ${quizzes.length} answered`;
+  quizzes.forEach(q=>{
+    const correct=+q.dataset.correct;
+    const opts=[...q.querySelectorAll('.opt')];
+    const explain=q.querySelector('.explain');
+    let locked=false;
+    opts.forEach((o,idx)=>{
+      o.addEventListener('click',()=>{
+        if(locked) return; locked=true; answered++;
+        opts.forEach(x=>x.classList.add('disabled'));
+        if(idx===correct){o.classList.add('correct');o.querySelector('.mk')||o.insertAdjacentHTML('beforeend','<span class="mk">✓</span>');}
+        else{
+          o.classList.add('wrong');o.insertAdjacentHTML('beforeend','<span class="mk">✕</span>');
+          opts[correct].classList.add('correct');opts[correct].insertAdjacentHTML('beforeend','<span class="mk">✓</span>');
+        }
+        explain.classList.add('show');
+        const pct=Math.round(answered/quizzes.length*100);
+        $('pbar').style.width=pct+'%';
+        $('pnum').textContent=`${answered} / ${quizzes.length} answered`;
+        if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([explain]);
+      });
+    });
+  });
+})();
+
+/* ===================================================================
+   WORKED EXAMPLES — re-typeset math the first time a panel opens
+   (MathJax can mis-size equations rendered inside a hidden <details>)
+   =================================================================== */
+document.querySelectorAll('details.worked').forEach(d=>{
+  let done=false;
+  d.addEventListener('toggle',()=>{
+    if(d.open && !done){ done=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([d]); }
+  });
+});
+
+/* ===================================================================
+   Shared: bracketed matrix HTML for generated content
+   =================================================================== */
+function bmat(M){
+  const cols=M[0].length;
+  const cells=M.flat().map(x=>`<span>${x}</span>`).join('');
+  return `<span class="bmatrix" style="grid-template-columns:repeat(${cols},auto)">${cells}</span>`;
+}
+function colvec(a){ return bmat(a.map(x=>[x])); }
+
+/* ===================================================================
+   TOOL 07 — PCA / SVD image compression
+   Jacobi eigensolver → SVD → rank-k reconstruction
+   =================================================================== */
+(function(){
+  const N=48;
+  const origC=$('pcaOrig'), reconC=$('pcaRecon');
+  if(!origC) return;
+
+  function jacobiEig(S){
+    const n=S.length;
+    const A=S.map(r=>r.slice());
+    const V=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+    for(let sweep=0;sweep<80;sweep++){
+      let off=0;
+      for(let p=0;p<n;p++)for(let q=p+1;q<n;q++) off+=A[p][q]*A[p][q];
+      if(off<1e-8) break;
+      for(let p=0;p<n;p++){
+        for(let q=p+1;q<n;q++){
+          if(Math.abs(A[p][q])<1e-11) continue;
+          const theta=(A[q][q]-A[p][p])/(2*A[p][q]);
+          const t=Math.sign(theta||1)/(Math.abs(theta)+Math.sqrt(theta*theta+1));
+          const c=1/Math.sqrt(t*t+1), s=t*c;
+          for(let k=0;k<n;k++){const akp=A[k][p],akq=A[k][q];A[k][p]=c*akp-s*akq;A[k][q]=s*akp+c*akq;}
+          for(let k=0;k<n;k++){const apk=A[p][k],aqk=A[q][k];A[p][k]=c*apk-s*aqk;A[q][k]=s*apk+c*aqk;}
+          for(let k=0;k<n;k++){const vkp=V[k][p],vkq=V[k][q];V[k][p]=c*vkp-s*vkq;V[k][q]=s*vkp+c*vkq;}
+        }
+      }
+    }
+    const eig=[];
+    for(let i=0;i<n;i++) eig.push({val:A[i][i], vec:V.map(r=>r[i])});
+    eig.sort((x,y)=>y.val-x.val);
+    return eig;
+  }
+
+  function sourceMatrix(kind){
+    const G=Array.from({length:N},()=>new Array(N).fill(255));
+    if(kind==='gradient'){
+      for(let i=0;i<N;i++)for(let j=0;j<N;j++)
+        G[i][j]=40+150*(i/N)+45*Math.sin(j/N*5); // few separable terms → low rank
+      return G;
+    }
+    const off=document.createElement('canvas'); off.width=N; off.height=N;
+    const x=off.getContext('2d');
+    x.fillStyle='#fff'; x.fillRect(0,0,N,N);
+    x.fillStyle='#111'; x.strokeStyle='#111';
+    if(kind==='smiley'){
+      x.lineWidth=2.6;
+      x.beginPath();x.arc(N/2,N/2,N*0.40,0,7);x.stroke();
+      x.beginPath();x.arc(N*0.37,N*0.40,N*0.045,0,7);x.fill();
+      x.beginPath();x.arc(N*0.63,N*0.40,N*0.045,0,7);x.fill();
+      x.lineWidth=2.6;x.beginPath();x.arc(N/2,N*0.50,N*0.20,0.18*Math.PI,0.82*Math.PI);x.stroke();
+    } else { // lambda symbol
+      x.font=`bold ${Math.floor(N*0.78)}px Georgia`;
+      x.textAlign='center';x.textBaseline='middle';
+      x.fillText('\u03BB',N/2,N*0.52);
+    }
+    const d=x.getImageData(0,0,N,N).data;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+      const idx=(i*N+j)*4;
+      G[i][j]=0.299*d[idx]+0.587*d[idx+1]+0.114*d[idx+2];
+    }
+    return G;
+  }
+
+  function svd(G){
+    const S=Array.from({length:N},()=>new Array(N).fill(0));
+    for(let a=0;a<N;a++)for(let b=a;b<N;b++){
+      let s=0; for(let r=0;r<N;r++) s+=G[r][a]*G[r][b];
+      S[a][b]=s; S[b][a]=s;
+    }
+    const eig=jacobiEig(S);
+    const comps=[];
+    for(let m=0;m<N;m++){
+      const sig=Math.sqrt(Math.max(0,eig[m].val));
+      const vv=eig[m].vec;
+      const u=new Array(N).fill(0);
+      if(sig>1e-6){ for(let i=0;i<N;i++){let s=0;for(let j=0;j<N;j++)s+=G[i][j]*vv[j]; u[i]=s/sig;} }
+      comps.push({sig,u,v:vv});
+    }
+    return comps;
+  }
+
+  function reconstruct(comps,k){
+    const R=Array.from({length:N},()=>new Array(N).fill(0));
+    for(let m=0;m<k;m++){
+      const {sig,u,v}=comps[m];
+      for(let i=0;i<N;i++){const su=sig*u[i]; if(su===0) continue; for(let j=0;j<N;j++) R[i][j]+=su*v[j];}
+    }
+    return R;
+  }
+
+  function drawMat(canvas,M){
+    const off=document.createElement('canvas'); off.width=N; off.height=N;
+    const ox=off.getContext('2d'); const id=ox.createImageData(N,N);
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+      const val=Math.max(0,Math.min(255,M[i][j]))|0;
+      const idx=(i*N+j)*4; id.data[idx]=id.data[idx+1]=id.data[idx+2]=val; id.data[idx+3]=255;
+    }
+    ox.putImageData(id,0,0);
+    const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(off,0,0,canvas.width,canvas.height);
+  }
+
+  let G=null, comps=null, totalE=0;
+  function spectrum(k){
+    const wrap=$('pcaSpectrum'); wrap.innerHTML='';
+    const top=comps.slice(0,32); const max=top[0].sig||1;
+    top.forEach((c,i)=>{
+      const bar=document.createElement('div');
+      bar.className='bar'+(i<k?' kept':'');
+      bar.style.height=Math.max(2,(c.sig/max)*42)+'px';
+      wrap.appendChild(bar);
+    });
+  }
+  function update(k){
+    $('pcaK').textContent=k; $('pcaKv').textContent=k;
+    drawMat(reconC, reconstruct(comps,k));
+    const keptE=comps.slice(0,k).reduce((s,c)=>s+c.sig*c.sig,0);
+    const energy=totalE>0?(keptE/totalE*100):100;
+    const origStore=N*N, kStore=k*(2*N+1);
+    const ratio=origStore/kStore;
+    $('pcaOut').innerHTML=
+      `<span class="lbl">components kept</span> = <b>${k}</b> of ${N}<br>`+
+      `<span class="lbl">variance captured</span> = <b>${fmt(energy,1)}%</b><br>`+
+      `<span class="lbl">storage</span> ${origStore} → ${kStore} numbers<br>`+
+      `<span class="verdict ${ratio>=1.05?'ok':'warn'}">${fmt(ratio,1)}× ${ratio>=1.05?'smaller':'(no saving yet)'}</span>`;
+    spectrum(k);
+  }
+  function load(kind){
+    G=sourceMatrix(kind); comps=svd(G);
+    totalE=comps.reduce((s,c)=>s+c.sig*c.sig,0);
+    drawMat(origC,G);
+    const k=Math.min(8, +$('pcaSlider').value);
+    $('pcaSlider').value=k;
+    update(k);
+  }
+  $('pcaSlider').addEventListener('input',()=>update(+$('pcaSlider').value));
+  window.pcaPick=kind=>{
+    document.querySelectorAll('#tool-pca .btnrow .btn').forEach(b=>b.classList.remove('primary'));
+    (event&&event.target)&&event.target.classList.add('primary');
+    load(kind);
+  };
+  load('smiley');
+})();
+
+/* ===================================================================
+   GENERATIVE PRACTICE LAB — fresh problems, auto-check, exam mode
+   =================================================================== */
+const Drill = (function(){
+  const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const nz=(a,b)=>{let x;do{x=ri(a,b);}while(x===0);return x;};
+
+  const gens={
+    det2(){
+      const a=ri(-3,4),b=ri(-3,4),c=ri(-3,4),d=ri(-3,4);
+      return {kind:'2×2 determinant', prompt:`Compute the determinant of ${bmat([[a,b],[c,d]])}`,
+        answer:a*d-b*c, tol:1e-9,
+        solution:`det = ad − bc = (${a})(${d}) − (${b})(${c}) = ${a*d} − ${b*c} = <b>${a*d-b*c}</b>`};
+    },
+    det3(){
+      const M=[[ri(-2,3),ri(-2,3),ri(-2,3)],[ri(-2,3),ri(-2,3),ri(-2,3)],[ri(-2,3),ri(-2,3),ri(-2,3)]];
+      const [a,b,c]=M[0],[d,e,f]=M[1],[g,h,i]=M[2];
+      const det=a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g);
+      return {kind:'3×3 determinant', prompt:`Compute the determinant of ${bmat(M)}`,
+        answer:det, tol:1e-9,
+        solution:`Cofactor expansion along row 1:<br>= ${a}(${e}·${i}−${f}·${h}) − ${b}(${d}·${i}−${f}·${g}) + ${c}(${d}·${h}−${e}·${g})<br>= ${a}(${e*i-f*h}) − ${b}(${d*i-f*g}) + ${c}(${d*h-e*g}) = <b>${det}</b>`};
+    },
+    dot(){
+      const u=[ri(-4,5),ri(-4,5)], v=[ri(-4,5),ri(-4,5)];
+      const ans=u[0]*v[0]+u[1]*v[1];
+      return {kind:'Dot product', prompt:`Compute u · v for u = ${colvec(u)} and v = ${colvec(v)}`,
+        answer:ans, tol:1e-9,
+        solution:`u·v = u₁v₁ + u₂v₂ = (${u[0]})(${v[0]}) + (${u[1]})(${v[1]}) = ${u[0]*v[0]} + ${u[1]*v[1]} = <b>${ans}</b>`+(ans===0?` — the vectors are <b>orthogonal</b>.`:``)};
+    },
+    norm(){
+      const v=[ri(-6,6),ri(-6,6)];
+      const sq=v[0]*v[0]+v[1]*v[1], ans=Math.sqrt(sq);
+      return {kind:'L2 norm', prompt:`Compute ‖v‖₂ for v = ${colvec(v)} &nbsp;<span style="font-size:13px;color:var(--ink-faint)">(round to 2 dp)</span>`,
+        answer:ans, tol:0.02,
+        solution:`‖v‖ = √(v₁² + v₂²) = √(${v[0]*v[0]} + ${v[1]*v[1]}) = √${sq} = <b>${fmt(ans,2)}</b>`};
+    },
+    matvec(){
+      const a=ri(-3,4),b=ri(-3,4),c=ri(-3,4),d=ri(-3,4),x=ri(-3,4),y=ri(-3,4);
+      const r1=a*x+b*y;
+      return {kind:'Matrix × vector', prompt:`Find the <b>first</b> component of ${bmat([[a,b],[c,d]])}${colvec([x,y])}`,
+        answer:r1, tol:1e-9,
+        solution:`Row 1 · vector = a·x + b·y = (${a})(${x}) + (${b})(${y}) = ${a*x} + ${b*y} = <b>${r1}</b>`};
+    },
+    eigsum(){
+      const a=ri(-2,5),b=ri(-3,4),c=ri(-3,4),d=ri(-2,5);
+      return {kind:'Sum of eigenvalues', prompt:`What do the eigenvalues of ${bmat([[a,b],[c,d]])} sum to?`,
+        answer:a+d, tol:1e-9,
+        solution:`λ₁ + λ₂ equals the <b>trace</b> = a + d = ${a} + ${d} = <b>${a+d}</b>. (The product would be the determinant.)`};
+    },
+    invertible(){
+      let a,b,c,d;
+      if(Math.random()<0.5){ a=nz(-3,3); b=ri(-3,3); const k=nz(-2,2); c=k*a; d=k*b; }
+      else { do{a=ri(-3,3);b=ri(-3,3);c=ri(-3,3);d=ri(-3,3);}while(a*d-b*c===0); }
+      const det=a*d-b*c, inv=det!==0;
+      return {kind:'Invertible?', prompt:`Is ${bmat([[a,b],[c,d]])} invertible?`,
+        choices:['Yes','No'], answer:inv?0:1, isChoice:true,
+        solution:`det = ad − bc = ${a*d} − ${b*c} = ${det}. ${inv?'Non-zero ⇒ <b>invertible</b> (non-singular).':'Zero ⇒ <b>singular</b>, so it is <b>not</b> invertible.'}`};
+    }
+  };
+  const order=['det2','det3','dot','norm','matvec','eigsum','invertible'];
+  function gen(type){
+    if(!type||type==='random') type=order[ri(0,order.length-1)];
+    return gens[type]();
+  }
+
+  // ---- state ----
+  let cur=null, locked=false;
+  let att=0, cor=0, streak=0;
+  // exam state
+  let exam=null;
+
+  function renderProblem(targetPrompt,targetRow,problem,onSubmit){
+    $(targetPrompt).innerHTML=problem.prompt;
+    const row=$(targetRow); row.innerHTML='';
+    if(problem.isChoice){
+      problem.choices.forEach((label,idx)=>{
+        const btn=document.createElement('button'); btn.className='btn'; btn.textContent=label;
+        btn.style.fontSize='15px'; btn.style.padding='11px 22px';
+        btn.onclick=()=>onSubmit(idx,btn);
+        row.appendChild(btn);
+      });
+    } else {
+      const inp=document.createElement('input'); inp.className='drill-input'; inp.type='text';
+      inp.inputMode='decimal'; inp.placeholder='answer'; inp.autocomplete='off';
+      const btn=document.createElement('button'); btn.className='btn primary'; btn.textContent='Check';
+      btn.style.padding='11px 20px';
+      const submit=()=>onSubmit(inp.value, null);
+      btn.onclick=submit;
+      inp.addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
+      row.appendChild(inp); row.appendChild(btn);
+      setTimeout(()=>inp.focus(),30);
+    }
+  }
+  function isRight(problem,val){
+    if(problem.isChoice) return +val===problem.answer;
+    const n=parseFloat(val); if(isNaN(n)) return false;
+    return Math.abs(n-problem.answer)<=(problem.tol||1e-9);
+  }
+  function updateStats(){ $('dsAtt').textContent=att; $('dsCor').textContent=cor; $('dsStreak').textContent=streak; }
+
+  // ---- FREE MODE ----
+  function next(){
+    locked=false;
+    cur=gen($('drillType').value);
+    $('drillKind').textContent=cur.kind;
+    $('drillFeedback').textContent=''; $('drillFeedback').className='drill-feedback';
+    $('drillSolution').className='drill-solution'; $('drillSolution').innerHTML=cur.solution;
+    renderProblem('drillPrompt','drillAnsRow',cur,(val,btn)=>{
+      if(locked) return; locked=true; att++;
+      const right=isRight(cur,val);
+      if(right){cor++;streak++;} else streak=0;
+      updateStats();
+      const fb=$('drillFeedback');
+      fb.className='drill-feedback '+(right?'right':'wrong');
+      fb.textContent = right ? '✓ Correct!' : `✕ Not quite — the answer is ${cur.isChoice?cur.choices[cur.answer]:fmt(cur.answer,2)}.`;
+      if(cur.isChoice){
+        [...$('drillAnsRow').children].forEach((b,i)=>{
+          b.style.pointerEvents='none';
+          if(i===cur.answer){b.classList.add('primary');}
+          else if(b===btn){b.style.opacity='.5';}
+        });
+      } else { $('drillAnsRow').querySelector('input').disabled=true; }
+      if(!right) showSolution();
+    });
+  }
+  function showSolution(){ $('drillSolution').classList.add('show'); }
+
+  // ---- EXAM MODE ----
+  let timerInt=null;
+  function startExam(){
+    exam={qs:Array.from({length:10},()=>gen('random')), idx:0, correct:0, start:Date.now(), submitted:false};
+    $('drillFree').style.display='none'; $('drillResult').style.display='none'; $('drillExam').style.display='';
+    $('drillTitle').textContent='Timed exam';
+    clearInterval(timerInt);
+    timerInt=setInterval(()=>{
+      const s=Math.floor((Date.now()-exam.start)/1000);
+      $('examTimer').textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    },500);
+    showExamQ();
+  }
+  function showExamQ(){
+    const p=exam.qs[exam.idx]; exam.submitted=false;
+    $('examProgress').textContent=`Question ${exam.idx+1} / 10`;
+    $('examFeedback').textContent=''; $('examFeedback').className='drill-feedback';
+    $('examNext').textContent='Submit →';
+    renderProblem('examPrompt','examAnsRow',p,(val,btn)=>{ exam.pendingVal=val; exam.pendingBtn=btn; examNext(); });
+  }
+  function examNext(){
+    const p=exam.qs[exam.idx];
+    if(!exam.submitted){
+      // grade current
+      let val=exam.pendingVal;
+      if(val===undefined){
+        const inp=$('examAnsRow').querySelector('input'); val=inp?inp.value:undefined;
+      }
+      const right=isRight(p, val===undefined?'':val);
+      if(right) exam.correct++;
+      exam.submitted=true; exam.pendingVal=undefined;
+      const fb=$('examFeedback'); fb.className='drill-feedback '+(right?'right':'wrong');
+      fb.innerHTML = right ? '✓ Correct' : `✕ Answer: <b>${p.isChoice?p.choices[p.answer]:fmt(p.answer,2)}</b>`;
+      if(p.isChoice){[...$('examAnsRow').children].forEach((b,i)=>{b.style.pointerEvents='none';if(i===p.answer)b.classList.add('primary');});}
+      else { const inp=$('examAnsRow').querySelector('input'); if(inp) inp.disabled=true; }
+      $('examNext').textContent = exam.idx===9 ? 'See results →' : 'Next question →';
+    } else {
+      exam.idx++;
+      if(exam.idx>=10) finishExam();
+      else showExamQ();
+    }
+  }
+  function finishExam(){
+    clearInterval(timerInt);
+    const s=Math.floor((Date.now()-exam.start)/1000);
+    $('drillExam').style.display='none'; $('drillResult').style.display='';
+    $('resScore').textContent=`${exam.correct} / 10`;
+    const pct=exam.correct*10;
+    const msg = pct>=90?'Outstanding — exam-ready.':pct>=70?'Solid. Drill the misses and you\u2019re there.':pct>=50?'Getting there — review the worked examples above.':'Worth another pass through the chapters first.';
+    $('resSub').innerHTML=`${pct}% &nbsp;·&nbsp; time ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}<br>${msg}`;
+    // count exam toward overall stats
+    att+=10; cor+=exam.correct; streak=0; updateStats();
+  }
+  function quitExam(){ clearInterval(timerInt); backToFree(); }
+  function backToFree(){
+    $('drillExam').style.display='none'; $('drillResult').style.display='none'; $('drillFree').style.display='';
+    $('drillTitle').textContent='Free practice';
+  }
+
+  $('drillType').addEventListener('change',next);
+  updateStats(); next();
+
+  return {next, showSolution, startExam, examNext, quitExam, backToFree};
+})();
+
+</script>
+</body>
+</html>

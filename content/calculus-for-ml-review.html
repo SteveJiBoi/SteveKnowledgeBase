@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculus for Machine Learning — Interactive Review</title>
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true,
+      packages: {'[+]': ['ams']}
+    },
+    loader: { load: ['[tex]/ams'] },
+    svg: { fontCache: 'global' },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#f6f9ff;
+  --bg2:#eef4ff;
+  --surface:#ffffff;
+  --ink:#0f213e;
+  --ink-soft:#33415c;
+  --muted:#5b6b85;
+  --faint:#8aa0bf;
+  --accent:#2563eb;       /* blue-600 */
+  --accent-d:#1d4ed8;
+  --sky:#0ea5e9;          /* sky-500 */
+  --sky-l:#38bdf8;
+  --accent-soft:#dbeafe;  /* blue-100 */
+  --sky-soft:#e0f2fe;
+  --line:#dbe6f5;
+  --line-2:#eaf1fb;
+  --good:#0f9d6b;
+  --good-soft:#dcfce7;
+  --warn:#d97706;
+  --warn-soft:#fef3c7;
+  --rose:#e11d48;
+  --rose-soft:#ffe4e6;
+  --shadow:0 1px 2px rgba(15,33,62,.04), 0 6px 24px rgba(37,99,235,.06);
+  --shadow-lg:0 10px 40px rgba(37,99,235,.12);
+  --radius:16px;
+  --radius-s:10px;
+  --mono:'SFMono-Regular',ui-monospace,'Cascadia Code','Source Code Pro',Menlo,Consolas,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --sidebar-w:288px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{
+  margin:0;font-family:var(--sans);color:var(--ink);
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  background-attachment:fixed;
+  line-height:1.65;-webkit-font-smoothing:antialiased;font-size:16.5px;
+}
+h1,h2,h3,h4{line-height:1.25;color:var(--ink);font-weight:750;letter-spacing:-.01em}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:.9em;background:var(--sky-soft);padding:.12em .4em;border-radius:6px;color:var(--accent-d)}
+
+/* progress bar */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:120;
+  background:linear-gradient(90deg,var(--accent),var(--sky-l));transition:width .12s ease-out}
+
+/* layout */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:var(--sidebar-w);flex:0 0 var(--sidebar-w);position:sticky;top:0;align-self:flex-start;
+  height:100vh;overflow-y:auto;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);
+  border-right:1px solid var(--line);padding:22px 16px 60px;z-index:90;
+}
+.sidebar::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 16px}
+.brand .logo{width:40px;height:40px;border-radius:11px;flex:0 0 40px;
+  background:linear-gradient(135deg,var(--accent),var(--sky));display:grid;place-items:center;
+  box-shadow:0 6px 16px rgba(37,99,235,.3)}
+.brand .logo svg{width:23px;height:23px}
+.brand .t1{font-weight:800;font-size:15px;letter-spacing:-.02em;color:var(--ink)}
+.brand .t2{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.nav-group{margin-top:10px}
+.nav-group > .gh{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);padding:10px 10px 5px}
+.nav a{display:block;padding:7px 12px;border-radius:9px;color:var(--ink-soft);font-size:13.7px;
+  font-weight:600;margin:1px 0;border:1px solid transparent;transition:.13s}
+.nav a:hover{background:var(--sky-soft);text-decoration:none;color:var(--accent-d)}
+.nav a.sub{padding-left:24px;font-size:13px;font-weight:550;color:var(--muted)}
+.nav a.active{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#fff;
+  box-shadow:0 4px 12px rgba(37,99,235,.28)}
+.nav a.active.sub{background:var(--accent-soft);color:var(--accent-d);box-shadow:none;font-weight:700}
+.nav .wk{display:flex;align-items:center;gap:9px;font-weight:750;font-size:14px}
+.nav .wk .pill{font-size:10.5px;background:var(--accent-soft);color:var(--accent-d);
+  padding:1px 7px;border-radius:20px;font-weight:800}
+
+/* main */
+.main{flex:1;min-width:0;padding:0 clamp(18px,4vw,64px) 90px;max-width:1080px;margin:0 auto}
+.topbar{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:14px;
+  padding:13px 4px;margin-bottom:6px;background:linear-gradient(180deg,var(--bg) 60%,transparent);
+  backdrop-filter:blur(2px)}
+.menu-toggle{display:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  width:40px;height:40px;cursor:pointer;align-items:center;justify-content:center}
+.menu-toggle svg{width:20px;height:20px;stroke:var(--ink)}
+.crumb{font-size:13px;color:var(--muted);font-weight:600}
+.crumb b{color:var(--accent-d)}
+.search-mini{margin-left:auto;font-size:12.5px;color:var(--faint)}
+
+/* hero */
+.hero{position:relative;border-radius:26px;overflow:hidden;margin:6px 0 34px;
+  background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 45%,#0ea5e9 100%);
+  color:#fff;padding:46px clamp(24px,4vw,52px) 42px;box-shadow:var(--shadow-lg)}
+.hero::after{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background:radial-gradient(900px 360px at 88% -10%,rgba(255,255,255,.32),transparent 60%),
+             radial-gradient(620px 300px at 6% 120%,rgba(56,189,248,.5),transparent 60%)}
+.hero > *{position:relative;z-index:2}
+.hero .eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;
+  color:#cfe4ff;margin-bottom:12px}
+.hero h1{color:#fff;font-size:clamp(28px,4.4vw,46px);margin:0 0 14px;letter-spacing:-.025em;line-height:1.08}
+.hero p{color:#e4eeff;max-width:660px;font-size:16.5px;margin:0 0 22px}
+.hero .chips{display:flex;flex-wrap:wrap;gap:9px}
+.hero .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:7px 14px;border-radius:30px;font-size:13px;font-weight:650;backdrop-filter:blur(4px)}
+.hero .chip b{color:#fff}
+.hero-eq{position:absolute;right:30px;bottom:14px;opacity:.22;font-size:90px;font-weight:800;
+  z-index:1;color:#fff;font-style:italic;user-select:none;display:none}
+@media(min-width:1000px){.hero-eq{display:block}}
+
+/* sections */
+section.week{scroll-margin-top:18px;margin-bottom:18px}
+.wk-head{display:flex;align-items:flex-end;gap:16px;margin:42px 0 8px;padding-bottom:16px;
+  border-bottom:2px solid var(--line)}
+.wk-head .num{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.wk-head h2{font-size:clamp(23px,3.2vw,32px);margin:4px 0 0}
+.wk-head .badge{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--muted);
+  background:var(--surface);border:1px solid var(--line);padding:6px 13px;border-radius:30px;white-space:nowrap}
+.lead{font-size:17px;color:var(--ink-soft);max-width:760px}
+
+.block{scroll-margin-top:18px;margin:30px 0}
+.block > h3{font-size:21px;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+.block > h3 .ix{width:30px;height:30px;border-radius:8px;background:var(--sky-soft);
+  display:inline-grid;place-items:center;flex:0 0 30px}
+.block > h3 .ix svg{width:17px;height:17px;stroke:var(--accent);fill:none}
+.block > h4{font-size:16.5px;margin:22px 0 4px;color:var(--ink)}
+p{margin:10px 0}
+.muted{color:var(--muted)}
+
+/* cards & callouts */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 24px;box-shadow:var(--shadow);margin:18px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.callout{border-radius:var(--radius-s);padding:15px 18px 15px 16px;margin:16px 0;
+  border:1px solid var(--line);background:var(--surface);position:relative;border-left-width:4px}
+.callout .ct{font-weight:800;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.callout p:last-child{margin-bottom:0}
+.callout.key{border-left-color:var(--accent);background:linear-gradient(90deg,var(--accent-soft)33,var(--surface) 40%)}
+.callout.key .ct{color:var(--accent-d)}
+.callout.note{border-left-color:var(--sky);background:linear-gradient(90deg,var(--sky-soft)55,var(--surface) 45%)}
+.callout.note .ct{color:#0369a1}
+.callout.tip{border-left-color:var(--good);background:linear-gradient(90deg,var(--good-soft)66,var(--surface) 45%)}
+.callout.tip .ct{color:#0f7a54}
+.callout.warn{border-left-color:var(--warn);background:linear-gradient(90deg,var(--warn-soft)66,var(--surface) 45%)}
+.callout.warn .ct{color:#b45309}
+.callout.ml{border-left-color:var(--sky);background:linear-gradient(90deg,#ecfeff,var(--surface) 50%)}
+.callout.ml .ct{color:#0e7490}
+
+/* formula box */
+.fbox{background:linear-gradient(135deg,#f0f6ff,#fbfdff);border:1px solid var(--line);
+  border-radius:14px;padding:8px 18px;margin:16px 0;overflow-x:auto;text-align:center;
+  box-shadow:inset 0 0 0 1px #fff}
+.fbox.tight{padding:4px 14px}
+.fbox.lined{border-left:4px solid var(--accent)}
+
+/* worked example */
+.example{border:1px solid var(--line);border-radius:var(--radius);margin:20px 0;overflow:hidden;
+  box-shadow:var(--shadow);background:var(--surface)}
+.example > .eh{background:linear-gradient(135deg,#eff6ff,#e0f2fe);padding:13px 20px;
+  display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+.example > .eh .tag{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--sky));padding:4px 11px;border-radius:30px}
+.example > .eh .q{font-weight:700;color:var(--ink);font-size:15.5px}
+.example .ebody{padding:6px 22px 18px}
+.steps{counter-reset:st;margin:6px 0 0;padding:0;list-style:none}
+.steps > li{position:relative;padding:14px 4px 14px 46px;border-bottom:1px dashed var(--line-2)}
+.steps > li:last-child{border-bottom:0}
+.steps > li::before{counter-increment:st;content:counter(st);position:absolute;left:0;top:13px;
+  width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent-d);
+  font-weight:800;font-size:14px;display:grid;place-items:center;border:1px solid #c5dbfb}
+.steps > li .sl{font-weight:700;color:var(--ink);font-size:14.5px;display:block;margin-bottom:2px}
+.ans{margin-top:12px;background:var(--good-soft);border:1px solid #b6f0d3;border-radius:10px;
+  padding:11px 16px;font-weight:650;color:#0c6b48;display:flex;gap:9px;align-items:flex-start}
+.ans b{color:#0a5a3c}
+
+/* tables */
+table.dt{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px}
+table.dt th,table.dt td{border:1px solid var(--line);padding:8px 12px;text-align:center}
+table.dt th{background:var(--accent-soft);color:var(--accent-d);font-weight:750}
+table.dt tr:nth-child(even) td{background:#f7fafe}
+table.dt td.l,table.dt th.l{text-align:left}
+.rules-tbl td:first-child{font-weight:600}
+
+/* interactive tool shell */
+.tool{border:1px solid var(--line);border-radius:var(--radius);margin:22px 0;overflow:hidden;
+  box-shadow:var(--shadow-lg);background:var(--surface)}
+.tool .th{background:linear-gradient(135deg,#0f2c66,#2563eb);color:#fff;padding:14px 20px;
+  display:flex;align-items:center;gap:11px}
+.tool .th .ti{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.16);
+  display:grid;place-items:center;flex:0 0 30px}
+.tool .th .ti svg{width:18px;height:18px;stroke:#fff;fill:none}
+.tool .th .tt{font-weight:750;font-size:15.5px}
+.tool .th .ts{font-size:12.5px;color:#cfe0ff;margin-left:auto;font-weight:600}
+.tool .tbody{padding:18px 20px 20px}
+.controls{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:center;margin:6px 0 14px}
+.ctrl{display:flex;flex-direction:column;gap:3px;min-width:150px}
+.ctrl label{font-size:12px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+.ctrl label b{color:var(--accent-d);font-family:var(--mono);font-weight:700}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;
+  background:var(--line);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--accent);border:3px solid #fff;box-shadow:0 1px 5px rgba(37,99,235,.5);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);
+  border:3px solid #fff;cursor:pointer}
+.btn{font-family:inherit;font-weight:700;font-size:13.5px;border-radius:9px;padding:9px 16px;cursor:pointer;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;transition:.13s;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.btn:hover{background:var(--accent-d);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.ghost{background:var(--surface);color:var(--accent-d)}
+.btn.ghost:hover{background:var(--sky-soft)}
+.btn.sm{padding:6px 12px;font-size:12.5px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:7px 13px;font-family:inherit;font-weight:650;font-size:13px;
+  cursor:pointer;color:var(--muted);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent);color:#fff}
+canvas{display:block;max-width:100%;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 14px;min-width:104px}
+.stat .k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+.stat .v{font-size:18px;font-weight:800;color:var(--accent-d);font-family:var(--mono)}
+
+/* quiz */
+.quiz{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,#fbfdff,#fff);
+  box-shadow:var(--shadow);margin:22px 0;overflow:hidden}
+.quiz .qh{background:linear-gradient(135deg,#eef5ff,#e0f2fe);padding:13px 20px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+.quiz .qh .qi{width:30px;height:30px;border-radius:8px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;flex:0 0 30px}
+.quiz .qh .qi svg{width:18px;height:18px;stroke:var(--accent)}
+.quiz .qh .qt{font-weight:750;font-size:15.5px}
+.quiz .qh .topic-sel{margin-left:auto}
+.quiz .qbody{padding:18px 22px 22px}
+.qprompt{font-size:16.5px;font-weight:600;background:var(--surface);border:1px dashed var(--line);
+  border-radius:12px;padding:16px 18px;margin-bottom:14px;min-height:30px}
+.qprompt .pp{color:var(--accent-d);font-weight:700}
+.ansrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ansrow input[type=text]{font-family:var(--mono);font-size:15px;padding:10px 14px;border:1.5px solid var(--line);
+  border-radius:9px;min-width:200px;outline:none;transition:.13s}
+.ansrow input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.verdict{margin-top:14px;border-radius:11px;padding:0;max-height:0;overflow:hidden;transition:max-height .35s ease;border:0}
+.verdict.show{max-height:1400px;border:1px solid var(--line);padding:14px 18px;margin-top:14px}
+.verdict.ok{background:var(--good-soft);border-color:#b6f0d3}
+.verdict.no{background:#fff4f5;border-color:#fbcfd6}
+.verdict .vh{font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.verdict.ok .vh{color:#0c6b48}.verdict.no .vh{color:#be123c}
+.worked{margin-top:8px;font-size:14.7px;color:var(--ink-soft)}
+.worked ol{margin:6px 0 0;padding-left:20px}
+.worked li{margin:5px 0}
+.streak{font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+.streak .dot{width:9px;height:9px;border-radius:50%;background:var(--good)}
+
+/* SVG diagram frames */
+.diagram{background:linear-gradient(135deg,#fbfdff,#f2f8ff);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px;margin:18px 0;text-align:center;overflow-x:auto}
+.diagram .cap{font-size:13px;color:var(--muted);margin-top:8px;font-weight:600}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;justify-content:center;margin:8px 0}
+.fstep{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 16px;
+  min-width:120px;max-width:210px;text-align:center;font-size:13.5px;box-shadow:var(--shadow);position:relative}
+.fstep .fn{font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.fstep.alt{border-color:var(--accent);background:linear-gradient(135deg,#eff6ff,#fff)}
+.farrow{display:flex;align-items:center;color:var(--accent);font-size:22px;padding:0 6px}
+@media(max-width:680px){.farrow{transform:rotate(90deg)}.flow{flex-direction:column;align-items:center}}
+
+/* key terms / definition */
+.def{display:flex;gap:13px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.def:last-child{border-bottom:0}
+.def .term{flex:0 0 168px;font-weight:750;color:var(--accent-d)}
+.def .desc{color:var(--ink-soft);font-size:14.7px}
+@media(max-width:600px){.def{flex-direction:column;gap:2px}.def .term{flex:none}}
+
+/* footer */
+footer{margin-top:60px;border-top:2px solid var(--line);padding-top:26px;color:var(--muted);font-size:14px}
+footer .fg{display:flex;flex-wrap:wrap;gap:30px;justify-content:space-between}
+.toTop{position:fixed;right:22px;bottom:22px;width:46px;height:46px;border-radius:50%;background:var(--accent);
+  color:#fff;border:none;cursor:pointer;box-shadow:var(--shadow-lg);display:none;place-items:center;z-index:70}
+.toTop.show{display:grid}
+.toTop svg{width:22px;height:22px;stroke:#fff;fill:none}
+
+.scrim{display:none}
+@media(max-width:980px){
+  :root{--sidebar-w:270px}
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-104%);transition:transform .25s ease;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:translateX(0)}
+  .menu-toggle{display:flex}
+  .main{padding-top:0}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(15,33,62,.4);z-index:85}
+}
+.eqn-lg{font-size:1.12em}
+.hl{background:linear-gradient(180deg,transparent 62%,var(--sky-soft) 62%);padding:0 2px;font-weight:650}
+.tag-ml{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;color:#0e7490;
+  background:#ecfeff;border:1px solid #bae6fd;border-radius:20px;padding:1px 9px;vertical-align:middle}
+ul.clean{list-style:none;padding-left:0}
+ul.clean li{padding:6px 0 6px 28px;position:relative;border-bottom:1px solid var(--line-2)}
+ul.clean li:last-child{border-bottom:0}
+ul.clean li::before{content:"";position:absolute;left:4px;top:13px;width:9px;height:9px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--sky))}
+.mini-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:10px;justify-content:center}
+.mini-legend span{display:inline-flex;align-items:center;gap:6px}
+.mini-legend i{width:14px;height:4px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="scrim" id="scrim" onclick="toggleNav(false)"></div>
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 L9 5 M4 19 H2 M19 7c-3 0-4 10-7 10s-4-6-7-6"/><path d="M14 5h6"/></svg>
+      </div>
+      <div>
+        <div class="t1">Calculus for ML</div>
+        <div class="t2">Interactive Review</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#top" class="wk-link"><span class="wk">📈 Overview</span></a>
+
+      <div class="nav-group">
+        <div class="gh">Week 1 · Derivatives</div>
+        <a href="#w1" class="wk-link"><span class="wk">Derivatives &amp; Optimization <span class="pill">W1</span></span></a>
+        <a href="#w1-motivation" class="sub">ML motivation</a>
+        <a href="#w1-intro" class="sub">What is a derivative?</a>
+        <a href="#w1-explorer" class="sub">▶ Tangent explorer</a>
+        <a href="#w1-rules" class="sub">Rules &amp; common derivatives</a>
+        <a href="#w1-combo" class="sub">Sum · product · chain</a>
+        <a href="#w1-special" class="sub">e, logs &amp; non-differentiable</a>
+        <a href="#w1-opt" class="sub">Optimization &amp; least squares</a>
+        <a href="#w1-quiz" class="sub">▶ Practice generator</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="gh">Week 2 · Gradients</div>
+        <a href="#w2" class="wk-link"><span class="wk">Gradients &amp; Descent <span class="pill">W2</span></span></a>
+        <a href="#w2-multi" class="sub">Functions of 2 variables</a>
+        <a href="#w2-partial" class="sub">Partial derivatives</a>
+        <a href="#w2-grad" class="sub">The gradient</a>
+        <a href="#w2-gd" class="sub">Gradient descent</a>
+        <a href="#w2-descent" class="sub">▶ Descent visualizer</a>
+        <a href="#w2-linreg" class="sub">Linear regression</a>
+        <a href="#w2-quiz" class="sub">▶ Practice generator</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="gh">Week 3 · Neural Nets</div>
+        <a href="#w3" class="wk-link"><span class="wk">Optimization in NNs <span class="pill">W3</span></span></a>
+        <a href="#w3-second" class="sub">Second derivatives</a>
+        <a href="#w3-newton" class="sub">Newton's method</a>
+        <a href="#w3-hessian" class="sub">Hessian &amp; saddle points</a>
+        <a href="#w3-nn" class="sub">Neural networks</a>
+        <a href="#w3-backprop" class="sub">▶ Backprop animator</a>
+        <a href="#w3-quiz" class="sub">▶ Practice generator</a>
+      </div>
+
+      <div class="nav-group">
+        <div class="gh">Reference</div>
+        <a href="#cheatsheet" class="wk-link"><span class="wk">📋 Formula cheat-sheet</span></a>
+        <a href="#glossary" class="wk-link"><span class="wk">📖 Glossary</span></a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main" id="top">
+    <div class="topbar">
+      <button class="menu-toggle" onclick="toggleNav(true)" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="crumb" id="crumb">Mathematics for Machine Learning · <b>Course 2: Calculus</b></div>
+      <div class="search-mini">Self-study review</div>
+    </div>
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="eyebrow">Mathematics for Machine Learning · Course 2</div>
+      <h1>Calculus, the engine behind learning</h1>
+      <p>Everything from your course in one interactive page — derivatives from first principles, gradients and gradient descent, and the second-derivative tools that power neural-network training. Built to <b>review by doing</b>: drag the tangent line, watch descent roll downhill, animate backprop, and generate endless fresh practice.</p>
+      <div class="chips">
+        <div class="chip">🧮 <b>3</b> weeks compiled</div>
+        <div class="chip">✏️ Worked examples</div>
+        <div class="chip">🎛️ <b>4</b> interactive tools</div>
+        <div class="chip">🔁 Generative practice</div>
+        <div class="chip">🧠 Neural-net diagrams</div>
+      </div>
+      <div class="hero-eq">∂f/∂x</div>
+    </header>
+
+    <div class="card" style="margin-top:-12px">
+      <h3 style="margin-top:4px">How this maps to your course</h3>
+      <p class="muted" style="margin-top:2px">Course 2 of the specialization builds the calculus you need to <em>train</em> models. Each week below mirrors a module of slides, re-organised for review with the math made explicit at every step.</p>
+      <div class="flow" style="margin-top:6px">
+        <div class="fstep alt"><div class="fn">Week 1</div>Derivatives &amp; optimization in one variable</div>
+        <div class="farrow">→</div>
+        <div class="fstep alt"><div class="fn">Week 2</div>Gradients &amp; gradient descent in many variables</div>
+        <div class="farrow">→</div>
+        <div class="fstep alt"><div class="fn">Week 3</div>Second derivatives, Newton &amp; backpropagation</div>
+      </div>
+      <p class="muted" style="text-align:center;font-size:13px;margin-bottom:0">The thread running through all three: <b>find where the derivative is zero to optimize a model's cost.</b></p>
+    </div>
+
+    <!-- ====================== WEEK 1 ====================== -->
+    <section class="week" id="w1">
+      <div class="wk-head">
+        <div>
+          <div class="num">Week 1</div>
+          <h2>Derivatives &amp; Optimization</h2>
+        </div>
+        <div class="badge">One variable · the slope of everything</div>
+      </div>
+      <p class="lead">A derivative measures how fast a function changes. In machine learning, the function is a <b>cost</b> (how wrong the model is), and we change the model to make that cost shrink. Finding where the derivative is zero is how we find the best model.</p>
+
+      <!-- 1.1 ML MOTIVATION -->
+      <div class="block" id="w1-motivation">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/></svg></span>Why calculus? A machine-learning warm-up</h3>
+        <p>Suppose you predict a house's price from its number of bedrooms. You collect data:</p>
+        <table class="dt">
+          <tr><th>Bedrooms</th><td>1</td><td>2</td><td>3</td><td>5</td><td>6</td><td>7</td><td>8</td><td><b>9</b></td><td>10</td></tr>
+          <tr><th>Price</th><td>$150k</td><td>$250k</td><td>$350k</td><td>$600k</td><td>$650k</td><td>$750k</td><td>$800k</td><td><b>?</b></td><td>$1,050k</td></tr>
+        </table>
+        <p>A <b>model</b> is a rule, e.g. a straight line <span class="hl">price \(= m\cdot(\text{bedrooms}) + b\)</span>. Different \(m,b\) fit the data better or worse. We score a model by its <b>cost</b> — typically the sum of squared errors between predictions and reality:</p>
+        <div class="fbox lined">$$\text{Cost}(m,b)=\sum_{i}\big(\underbrace{m\,x_i+b}_{\text{prediction}}-\underbrace{y_i}_{\text{actual}}\big)^2$$</div>
+        <div class="callout ml">
+          <div class="ct">🤖 The big idea</div>
+          <p><b>Training a model = minimizing its cost.</b> The cost is a function of the model's parameters, and the minimum is where its <b>derivative is zero</b>. That single sentence is the spine of this entire course — Week 1 builds derivatives, Week 2 extends them to many parameters, Week 3 sharpens the search.</p>
+        </div>
+      </div>
+
+      <!-- 1.2 INTRO TO DERIVATIVES -->
+      <div class="block" id="w1-intro">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 18 Q9 4 20 6"/><path d="M4 18 L20 13"/></svg></span>What is a derivative?</h3>
+        <p>The derivative of \(f\) at a point is the <b>slope of the tangent line</b> there — the function's instantaneous rate of change. We build it from the slope of a <b>secant</b> line through two nearby points and then slide them together.</p>
+        <div class="fbox eqn-lg">$$f'(x)=\frac{df}{dx}=\lim_{\Delta x \to 0}\frac{f(x+\Delta x)-f(x)}{\Delta x}$$</div>
+        <p>The fraction is "rise over run": the change in height \(f(x+\Delta x)-f(x)\) divided by the change in input \(\Delta x\). As \(\Delta x \to 0\), the secant becomes the tangent.</p>
+
+        <div class="callout note">
+          <div class="ct">🚗 The everyday picture: velocity</div>
+          <p>If \(x(t)\) is the position of a car at time \(t\), then average velocity over an interval is \(\frac{\Delta x}{\Delta t}\) (distance ÷ time). The <b>instantaneous</b> velocity — what the speedometer reads — is the derivative \(x'(t)\): shrink the time interval to zero.</p>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Derivative of \(f(x)=x^2\) from first principles</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Write the difference quotient.</span>\(\dfrac{f(x+\Delta x)-f(x)}{\Delta x}=\dfrac{(x+\Delta x)^2-x^2}{\Delta x}\)</li>
+              <li><span class="sl">Expand the numerator.</span>\((x+\Delta x)^2-x^2 = x^2+2x\,\Delta x+\Delta x^2 - x^2 = 2x\,\Delta x+\Delta x^2\)</li>
+              <li><span class="sl">Divide by \(\Delta x\).</span>\(\dfrac{2x\,\Delta x+\Delta x^2}{\Delta x}=2x+\Delta x\)</li>
+              <li><span class="sl">Let \(\Delta x\to 0\).</span>The leftover \(\Delta x\) vanishes.</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>\(f'(x)=2x\).</b> The slope of \(x^2\) at \(x=3\) is \(6\); at the bottom \(x=0\) the slope is \(0\) — that flat point is exactly where a minimum lives.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TANGENT EXPLORER TOOL -->
+      <div class="block" id="w1-explorer">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 3v18h18"/><circle cx="12" cy="10" r="2.4"/></svg></span>Interactive: the tangent &amp; slope explorer</h3>
+        <p>Pick a function and drag the point (or the slider). The <b>blue tangent line</b> shows the slope at that point, and the panel reads off the exact derivative. Watch how the slope is <b>0 at the bottom of a valley</b> and changes sign as you cross it.</p>
+        <div class="tool" id="te-tool">
+          <div class="th">
+            <span class="ti"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 17 Q9 5 21 9"/><circle cx="11" cy="9.5" r="2"/></svg></span>
+            <span class="tt">Tangent / Derivative Explorer</span>
+            <span class="ts">drag the point ●</span>
+          </div>
+          <div class="tbody">
+            <div class="controls">
+              <div class="ctrl" style="min-width:auto">
+                <label>Function</label>
+                <div class="seg" id="te-fn">
+                  <button data-f="sq" class="on">x²</button>
+                  <button data-f="cube">x³</button>
+                  <button data-f="sin">sin x</button>
+                  <button data-f="exp">eˣ</button>
+                  <button data-f="wave">⅓x³−x</button>
+                </div>
+              </div>
+              <div class="ctrl">
+                <label>Point&nbsp; <b id="te-xlab">x = 1.00</b></label>
+                <input type="range" id="te-x" min="-3" max="3" step="0.01" value="1">
+              </div>
+              <label style="font-size:12.5px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:7px;cursor:pointer">
+                <input type="checkbox" id="te-sec"> show secant (Δx)
+              </label>
+            </div>
+            <canvas id="te-canvas" width="860" height="420"></canvas>
+            <div class="readout">
+              <div class="stat"><div class="k">x</div><div class="v" id="te-x-out">1.00</div></div>
+              <div class="stat"><div class="k">f(x)</div><div class="v" id="te-fx-out">1.00</div></div>
+              <div class="stat"><div class="k">slope f′(x)</div><div class="v" id="te-slope-out">2.00</div></div>
+              <div class="stat"><div class="k">f′(x) formula</div><div class="v" id="te-formula-out" style="font-size:14px">2x</div></div>
+            </div>
+            <div class="mini-legend">
+              <span><i style="background:#2563eb"></i> tangent (slope = f′)</span>
+              <span><i style="background:#94a3b8"></i> secant (average slope)</span>
+              <span><i style="background:#e11d48"></i> the point (x, f(x))</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.4 RULES -->
+      <div class="block" id="w1-rules">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>The rules &amp; the common derivatives</h3>
+        <p>You rarely use the limit definition in practice — you memorise a handful of results and combine them. Here is the toolkit from the slides.</p>
+
+        <h4>Building blocks</h4>
+        <table class="dt rules-tbl">
+          <tr><th class="l">Function \(f(x)\)</th><th class="l">Derivative \(f'(x)\)</th><th class="l">Note</th></tr>
+          <tr><td class="l">\(c\) (constant)</td><td class="l">\(0\)</td><td class="l">flat line, no slope</td></tr>
+          <tr><td class="l">\(ax+b\) (line)</td><td class="l">\(a\)</td><td class="l">slope is constant</td></tr>
+          <tr><td class="l">\(x^2\)</td><td class="l">\(2x\)</td><td class="l">parabola</td></tr>
+          <tr><td class="l">\(x^3\)</td><td class="l">\(3x^2\)</td><td class="l">cubic</td></tr>
+          <tr><td class="l"><b>\(x^n\)</b> (power rule)</td><td class="l"><b>\(n\,x^{n-1}\)</b></td><td class="l">the master rule</td></tr>
+          <tr><td class="l">\(x^{-1}=\tfrac1x\)</td><td class="l">\(-x^{-2}=-\tfrac{1}{x^2}\)</td><td class="l">power rule with \(n=-1\)</td></tr>
+          <tr><td class="l">\(\sqrt{x}=x^{1/2}\)</td><td class="l">\(\tfrac12 x^{-1/2}=\tfrac{1}{2\sqrt x}\)</td><td class="l">power rule with \(n=\tfrac12\)</td></tr>
+          <tr><td class="l">\(e^x\)</td><td class="l">\(e^x\)</td><td class="l">its own derivative!</td></tr>
+          <tr><td class="l">\(\ln x\)</td><td class="l">\(\tfrac1x\)</td><td class="l">inverse of \(e^x\)</td></tr>
+          <tr><td class="l">\(\sin x\)</td><td class="l">\(\cos x\)</td><td class="l">trig</td></tr>
+          <tr><td class="l">\(\cos x\)</td><td class="l">\(-\sin x\)</td><td class="l">note the minus</td></tr>
+        </table>
+
+        <div class="callout key">
+          <div class="ct">⭐ The power rule</div>
+          <p>For any power, <b>bring the exponent down front and subtract one from it</b>: \(\frac{d}{dx}x^n = n\,x^{n-1}\). It covers \(x^2,\,x^3,\,\sqrt x,\,\tfrac1x\) and everything in between.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="example">
+            <div class="eh"><span class="tag">Example</span><span class="q">Cubic from first principles</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">Expand.</span>\((x+\Delta x)^3 = x^3+3x^2\Delta x+3x\Delta x^2+\Delta x^3\)</li>
+                <li><span class="sl">Subtract \(x^3\), divide by \(\Delta x\).</span>\(3x^2+3x\,\Delta x+\Delta x^2\)</li>
+                <li><span class="sl">\(\Delta x\to 0\).</span>only \(3x^2\) survives</li>
+              </ol>
+              <div class="ans"><span>✓</span><div><b>\(\dfrac{d}{dx}x^3=3x^2\)</b> — matches the power rule.</div></div>
+            </div>
+          </div>
+          <div class="example">
+            <div class="eh"><span class="tag">Example</span><span class="q">Derivative of \(\frac{1}{x}\)</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">Rewrite as a power.</span>\(\tfrac1x = x^{-1}\)</li>
+                <li><span class="sl">Apply the power rule with \(n=-1\).</span>\(-1\cdot x^{-2}\)</li>
+                <li><span class="sl">Tidy up.</span>\(-x^{-2}=-\dfrac{1}{x^2}\)</li>
+              </ol>
+              <div class="ans"><span>✓</span><div>Always negative — \(\tfrac1x\) always slopes downhill.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.5 COMBINING RULES -->
+      <div class="block" id="w1-combo">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16"/></svg></span>Combining functions: sum, scalar, product, chain</h3>
+        <div class="grid2">
+          <div class="card">
+            <h4 style="margin-top:0">Sum rule</h4>
+            <div class="fbox tight">$$(f+g)' = f' + g'$$</div>
+            <p class="muted" style="font-size:14px">Differentiate term by term.</p>
+          </div>
+          <div class="card">
+            <h4 style="margin-top:0">Scalar multiple</h4>
+            <div class="fbox tight">$$(c\,f)' = c\,f'$$</div>
+            <p class="muted" style="font-size:14px">Constants ride along untouched.</p>
+          </div>
+          <div class="card">
+            <h4 style="margin-top:0">Product rule</h4>
+            <div class="fbox tight">$$(fg)' = f'g + fg'$$</div>
+            <p class="muted" style="font-size:14px">"derivative of first × second, plus first × derivative of second."</p>
+          </div>
+          <div class="card">
+            <h4 style="margin-top:0">Chain rule <span class="tag-ml">key for ML</span></h4>
+            <div class="fbox tight">$$\big(f(g(x))\big)' = f'(g(x))\cdot g'(x)$$</div>
+            <p class="muted" style="font-size:14px">Differentiate the outside, then multiply by the derivative of the inside. This rule <em>is</em> backpropagation.</p>
+          </div>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Chain rule: differentiate \(h(x)=(3x^2+1)^5\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Spot inside &amp; outside.</span>Inside \(g(x)=3x^2+1\); outside \(f(u)=u^5\).</li>
+              <li><span class="sl">Differentiate the outside (keep inside).</span>\(f'(u)=5u^4 \;\Rightarrow\; 5(3x^2+1)^4\)</li>
+              <li><span class="sl">Multiply by the derivative of the inside.</span>\(g'(x)=6x\)</li>
+              <li><span class="sl">Combine.</span>\(5(3x^2+1)^4\cdot 6x\)</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>\(h'(x)=30x\,(3x^2+1)^4\).</b></div></div>
+          </div>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Product rule: differentiate \(p(x)=x^2 e^x\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Label the two factors.</span>\(f=x^2\;(f'=2x)\), \(g=e^x\;(g'=e^x)\).</li>
+              <li><span class="sl">Apply \((fg)'=f'g+fg'\).</span>\(2x\,e^x + x^2 e^x\)</li>
+              <li><span class="sl">Factor.</span>\(e^x(2x + x^2)\)</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>\(p'(x)=x e^x(x+2)\).</b></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1.6 e, LOGS, NON-DIFF -->
+      <div class="block" id="w1-special">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 20 C10 20 8 4 14 4 M4 13h7"/></svg></span>The star functions: \(e\), logarithms &amp; inverses</h3>
+
+        <h4>Where \(e\) comes from — compound interest</h4>
+        <p>Put $1 in the bank at 100% interest. Compound it more and more often and the year-end balance climbs toward a magic ceiling:</p>
+        <table class="dt">
+          <tr><th class="l">Compounding</th><th>Formula</th><th>Year-end $</th></tr>
+          <tr><td class="l">Once a year</td><td>\((1+1)^1\)</td><td>2.000</td></tr>
+          <tr><td class="l">Twice (every 6 mo)</td><td>\((1+\tfrac12)^2\)</td><td>2.250</td></tr>
+          <tr><td class="l">3× (every 4 mo)</td><td>\((1+\tfrac13)^3\)</td><td>2.370</td></tr>
+          <tr><td class="l">Monthly</td><td>\((1+\tfrac1{12})^{12}\)</td><td>2.613</td></tr>
+          <tr><td class="l">\(n\to\infty\)</td><td>\(\big(1+\tfrac1n\big)^{n}\)</td><td><b>e ≈ 2.71828</b></td></tr>
+        </table>
+        <div class="fbox">$$e=\lim_{n\to\infty}\Big(1+\frac1n\Big)^{n}\approx 2.71828\qquad\text{and uniquely}\qquad \frac{d}{dx}e^{x}=e^{x}$$</div>
+        <div class="callout key">
+          <div class="ct">⭐ Why \(e^x\) is special</div>
+          <p>It is the one function (up to scaling) that is <b>its own derivative</b>: its slope at every point equals its height. That self-similarity makes it the natural language of growth, probability, and the sigmoid/softmax activations you'll meet in Week 3.</p>
+        </div>
+
+        <h4>Logarithm &amp; the derivative of an inverse</h4>
+        <p>\(\ln x\) is the inverse of \(e^x\). For any invertible \(f\) with inverse \(f^{-1}\), reflecting the graph across \(y=x\) reflects the slopes too, giving:</p>
+        <div class="fbox">$$\big(f^{-1}\big)'(y)=\frac{1}{f'\!\big(f^{-1}(y)\big)}$$</div>
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Use the inverse rule to get \(\frac{d}{dx}\ln x\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Set up.</span>Let \(f(x)=e^x\), so \(f^{-1}(y)=\ln y\) and \(f'(x)=e^x\).</li>
+              <li><span class="sl">Apply the inverse rule.</span>\((\ln)'(y)=\dfrac{1}{f'(\ln y)}=\dfrac{1}{e^{\ln y}}\)</li>
+              <li><span class="sl">Simplify \(e^{\ln y}=y\).</span>\(\dfrac1y\)</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>\(\dfrac{d}{dx}\ln x=\dfrac1x\).</b></div></div>
+          </div>
+        </div>
+
+        <h4>When a derivative doesn't exist</h4>
+        <p>A function is <b>non-differentiable</b> at a point if it has no single well-defined tangent there. Three culprits from the slides:</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 200" style="max-width:700px;width:100%" font-family="Inter,sans-serif">
+            <!-- panel 1: corner |x| -->
+            <g>
+              <line x1="20" y1="160" x2="240" y2="160" stroke="#cbd9ee"/><line x1="130" y1="20" x2="130" y2="172" stroke="#cbd9ee"/>
+              <path d="M40 60 L130 150 L220 60" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+              <circle cx="130" cy="150" r="6" fill="#e11d48"/>
+              <text x="92" y="190" font-size="12.5" fill="#475569" font-weight="700">Corner: |x|</text>
+              <text x="150" y="150" font-size="11" fill="#be123c">slope jumps −1→+1</text>
+            </g>
+            <!-- panel 2: jump -->
+            <g transform="translate(255,0)">
+              <line x1="20" y1="160" x2="240" y2="160" stroke="#cbd9ee"/><line x1="130" y1="20" x2="130" y2="172" stroke="#cbd9ee"/>
+              <path d="M35 120 L125 120" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+              <path d="M135 70 L225 70" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+              <circle cx="125" cy="120" r="5.5" fill="#fff" stroke="#2563eb" stroke-width="2.5"/>
+              <circle cx="135" cy="70" r="5.5" fill="#e11d48"/>
+              <text x="92" y="190" font-size="12.5" fill="#475569" font-weight="700">Jump</text>
+              <text x="150" y="100" font-size="11" fill="#be123c">discontinuous</text>
+            </g>
+            <!-- panel 3: vertical tangent -->
+            <g transform="translate(510,0)">
+              <line x1="20" y1="160" x2="240" y2="160" stroke="#cbd9ee"/><line x1="130" y1="20" x2="130" y2="172" stroke="#cbd9ee"/>
+              <path d="M45 55 C 110 85, 120 90, 130 90 C 140 90, 150 95, 215 125" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+              <line x1="130" y1="40" x2="130" y2="140" stroke="#e11d48" stroke-width="2" stroke-dasharray="5 5"/>
+              <circle cx="130" cy="90" r="6" fill="#e11d48"/>
+              <text x="70" y="190" font-size="12.5" fill="#475569" font-weight="700">Vertical tangent</text>
+              <text x="138" y="50" font-size="11" fill="#be123c">slope → ∞</text>
+            </g>
+          </svg>
+          <div class="cap">Three ways a derivative can fail to exist. ReLU, \(\max(0,x)\), is the corner case — ubiquitous in neural networks.</div>
+        </div>
+        <ul class="clean">
+          <li><b>Corner / cusp</b> — e.g. \(|x|\) at \(x=0\): the slope from the left (\(-1\)) ≠ the slope from the right (\(+1\)).</li>
+          <li><b>Jump / discontinuity</b> — the function teleports; you can't even draw one tangent.</li>
+          <li><b>Vertical tangent</b> — e.g. \(\sqrt[3]{x}\) at \(0\): the slope blows up to \(\infty\).</li>
+        </ul>
+        <div class="callout warn">
+          <div class="ct">⚠️ Why ML cares</div>
+          <p>The popular <b>ReLU</b> activation \(\max(0,x)\) has a corner at \(0\) — exactly this situation. In practice we just pick a "subgradient" (say \(0\)) there and carry on.</p>
+        </div>
+      </div>
+
+      <!-- 1.7 OPTIMIZATION -->
+      <div class="block" id="w1-opt">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 4v16h18"/><path d="M6 16 Q12 4 18 16"/><circle cx="12" cy="9.5" r="1.6" fill="#2563eb" stroke="none"/></svg></span>Optimization: find where the slope is zero</h3>
+        <p>At a smooth maximum or minimum the tangent is horizontal, so the recipe is: <b>set \(f'(x)=0\) and solve.</b> This is the moment calculus becomes machine learning.</p>
+        <div class="diagram">
+          <svg viewBox="0 0 760 250" style="max-width:680px;width:100%" font-family="Inter,sans-serif">
+            <defs>
+              <linearGradient id="curveStroke" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+            </defs>
+            <line x1="40" y1="210" x2="730" y2="210" stroke="#cbd9ee" stroke-width="1.5"/>
+            <line x1="60" y1="20" x2="60" y2="225" stroke="#cbd9ee" stroke-width="1.5"/>
+            <text x="724" y="230" font-size="12" fill="#8aa0bf">x</text>
+            <!-- curve: a wave with a local max then local min -->
+            <path d="M70 150 C 160 60, 230 60, 300 110 C 360 152, 420 200, 500 200 C 580 200, 650 140, 712 60" fill="none" stroke="url(#curveStroke)" stroke-width="3.5"/>
+            <!-- local max -->
+            <line x1="180" y1="73" x2="330" y2="73" stroke="#e11d48" stroke-width="2" stroke-dasharray="6 5"/>
+            <circle cx="255" cy="73" r="6" fill="#e11d48"/>
+            <text x="232" y="50" font-size="13" fill="#be123c" font-weight="700">f′ = 0</text>
+            <text x="206" y="36" font-size="12" fill="#64748b">local max</text>
+            <!-- local min -->
+            <line x1="420" y1="200" x2="575" y2="200" stroke="#0f9d6b" stroke-width="2" stroke-dasharray="6 5"/>
+            <circle cx="497" cy="200" r="6" fill="#0f9d6b"/>
+            <text x="472" y="225" font-size="13" fill="#0f7a54" font-weight="700">f′ = 0</text>
+            <text x="455" y="178" font-size="12" fill="#64748b">local min</text>
+            <!-- slope sign annotations -->
+            <text x="120" y="120" font-size="20" fill="#94a3b8">↗</text><text x="118" y="138" font-size="11" fill="#94a3b8">f′ &gt; 0</text>
+            <text x="370" y="150" font-size="20" fill="#94a3b8">↘</text><text x="360" y="168" font-size="11" fill="#94a3b8">f′ &lt; 0</text>
+            <text x="640" y="110" font-size="20" fill="#94a3b8">↗</text><text x="632" y="128" font-size="11" fill="#94a3b8">f′ &gt; 0</text>
+          </svg>
+          <div class="cap">At a smooth peak or valley the tangent is flat (\(f'=0\)). The derivative is positive going uphill, negative going downhill — and flips sign through each turning point.</div>
+        </div>
+
+        <div class="callout ml">
+          <div class="ct">🤖 Least squares &amp; the "power-line" problem</div>
+          <p>Your slides minimise the <b>sum of squared distances</b> from a point to a set of houses (the "power-line" setup). The punchline is beautiful: <b>the minimizer is the average.</b> That is precisely why squared-error cost gives you the mean — and why linear regression works.</p>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Two power lines: minimize \(C(x)=(x-a)^2+(x-b)^2\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Differentiate (chain rule on each square).</span>\(C'(x)=2(x-a)+2(x-b)\)</li>
+              <li><span class="sl">Set the slope to zero.</span>\(2(x-a)+2(x-b)=0\)</li>
+              <li><span class="sl">Solve.</span>\(2x = a+b \;\Rightarrow\; x=\dfrac{a+b}{2}\)</li>
+              <li><span class="sl">Check it's a minimum.</span>\(C''(x)=4>0\) — a valley (more on \(C''\) in Week 3).</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>\(x^\star=\frac{a+b}{2}\): the midpoint.</b> With \(n\) houses you'd get \(x^\star=\frac{1}{n}\sum a_i\) — the mean. Minimizing squared error ⇒ averaging.</div></div>
+          </div>
+        </div>
+
+        <div class="callout note">
+          <div class="ct">🪙 Bonus connection: maximum likelihood</div>
+          <p>The "coin toss" segment optimizes a different cost. If you flip a coin and see \(h\) heads in \(n\) tosses, the probability \(p\) that makes the data <em>most likely</em> is found by setting the derivative of the (log-)likelihood to zero — giving \(p^\star=\tfrac{h}{n}\), the observed frequency. Same machinery, different objective. Taking \(\log\) turns nasty products into friendly sums before differentiating.</p>
+        </div>
+      </div>
+
+      <!-- WEEK 1 PRACTICE -->
+      <div class="block" id="w1-quiz">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Generative practice — Week 1</h3>
+        <p>Fresh problems every click, with full step-by-step solutions. Type an answer and check it, or just reveal the worked solution.</p>
+        <div class="quiz" data-quiz="w1">
+          <div class="qh">
+            <span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
+            <span class="qt">Derivative drill</span>
+            <span class="topic-sel">
+              <select class="qtopic seg" style="padding:7px 10px;border-radius:9px;border:1px solid var(--line);font-family:inherit;font-weight:650;font-size:13px;color:var(--ink-soft)">
+                <option value="mix">Mixed</option>
+                <option value="power">Power rule</option>
+                <option value="poly">Polynomials</option>
+                <option value="product">Product rule</option>
+                <option value="chain">Chain rule</option>
+                <option value="optimize">Find the minimum</option>
+              </select>
+            </span>
+          </div>
+          <div class="qbody">
+            <div class="qprompt"></div>
+            <div class="ansrow">
+              <input type="text" class="qinput" placeholder="your answer, e.g. 6x^2 + 4x" autocomplete="off">
+              <button class="btn check">Check</button>
+              <button class="btn ghost reveal">Reveal solution</button>
+              <button class="btn ghost next">New problem →</button>
+              <span class="streak" style="margin-left:auto"><span class="dot"></span><span class="sc">0</span> solved</span>
+            </div>
+            <div class="verdict"></div>
+          </div>
+        </div>
+        <div class="callout tip">
+          <div class="ct">💡 Answer formatting</div>
+          <p>Type powers with <code>^</code> (e.g. <code>3x^2</code>), products with <code>*</code> optional (<code>6x</code> or <code>6*x</code> both work), and constants as plain numbers. The checker is lenient about spaces and ordering — but if in doubt, hit <b>Reveal solution</b> and compare.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ====================== WEEK 2 ====================== -->
+    <section class="week" id="w2">
+      <div class="wk-head">
+        <div>
+          <div class="num">Week 2</div>
+          <h2>Gradients &amp; Gradient Descent</h2>
+        </div>
+        <div class="badge">Many variables · the workhorse of ML</div>
+      </div>
+      <p class="lead">Real models have thousands or millions of parameters, not one. The gradient packages all their slopes into a single vector that points uphill — and walking the other way, <b>gradient descent</b>, is how almost every model on Earth is trained.</p>
+
+      <!-- 2.1 FUNCTIONS OF TWO VARIABLES -->
+      <div class="block" id="w2-multi">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M3 20 L9 8 L14 15 L21 4"/><path d="M3 20h18"/></svg></span>Functions of several variables</h3>
+        <p>A function like \(f(x,y)\) takes two inputs and returns one number — picture a <b>landscape</b>: \((x,y)\) is your position and \(f\) is the altitude. The cost of a 2-parameter model \((m,b)\) is exactly such a surface, and we want its lowest point.</p>
+        <div class="grid2">
+          <div class="card" style="margin:0">
+            <h4 style="margin-top:0">As a surface</h4>
+            <div class="diagram" style="margin:6px 0 0;border:none;background:none;padding:0">
+              <svg viewBox="0 0 300 200" style="width:100%;max-width:300px">
+                <defs><radialGradient id="bowlG" cx="50%" cy="38%" r="65%"><stop offset="0" stop-color="#bfdbfe"/><stop offset="1" stop-color="#1e3a8a"/></radialGradient></defs>
+                <!-- bowl body -->
+                <path d="M40 70 Q150 -10 260 70 L150 175 Z" fill="url(#bowlG)" opacity="0.92"/>
+                <ellipse cx="150" cy="70" rx="110" ry="34" fill="#dbeafe" opacity="0.55"/>
+                <!-- contour rings on the bowl -->
+                <ellipse cx="150" cy="86" rx="84" ry="26" fill="none" stroke="#bfdbfe" stroke-width="1.2" opacity=".7"/>
+                <ellipse cx="150" cy="108" rx="56" ry="17" fill="none" stroke="#bfdbfe" stroke-width="1.2" opacity=".7"/>
+                <ellipse cx="150" cy="130" rx="30" ry="9" fill="none" stroke="#dbeafe" stroke-width="1.2" opacity=".8"/>
+                <circle cx="150" cy="148" r="4.5" fill="#22c55e" stroke="#fff" stroke-width="1.5"/>
+                <text x="150" y="195" font-size="12" fill="#475569" text-anchor="middle" font-family="Inter">f(x,y) = x² + y²</text>
+              </svg>
+            </div>
+          </div>
+          <div class="card" style="margin:0">
+            <h4 style="margin-top:0">As a contour map</h4>
+            <div class="diagram" style="margin:6px 0 0;border:none;background:none;padding:0">
+              <svg viewBox="0 0 300 200" style="width:100%;max-width:300px" font-family="Inter">
+                <rect x="35" y="14" width="232" height="150" rx="8" fill="#f0f6ff" stroke="#dbe6f5"/>
+                <g transform="translate(150,89)">
+                  <circle r="70" fill="none" stroke="#bfdbfe" stroke-width="1.4"/>
+                  <circle r="54" fill="none" stroke="#93c5fd" stroke-width="1.4"/>
+                  <circle r="38" fill="none" stroke="#60a5fa" stroke-width="1.4"/>
+                  <circle r="22" fill="none" stroke="#3b82f6" stroke-width="1.4"/>
+                  <circle r="8" fill="none" stroke="#1d4ed8" stroke-width="1.4"/>
+                  <circle r="3" fill="#22c55e"/>
+                  <!-- gradient arrow (uphill) and descent arrow -->
+                  <line x1="38" y1="-38" x2="64" y2="-64" stroke="#e11d48" stroke-width="2.4" marker-end="url(#ahead)"/>
+                  <line x1="38" y1="-38" x2="14" y2="-14" stroke="#0f9d6b" stroke-width="2.4" marker-end="url(#ahead2)"/>
+                  <circle cx="38" cy="-38" r="3.5" fill="#0f213e"/>
+                </g>
+                <defs>
+                  <marker id="ahead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#e11d48"/></marker>
+                  <marker id="ahead2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#0f9d6b"/></marker>
+                </defs>
+                <text x="220" y="30" font-size="10.5" fill="#be123c">∇f (uphill)</text>
+                <text x="40" y="180" font-size="10.5" fill="#0f7a54">−∇f (downhill)</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="callout note">
+          <div class="ct">🗺️ Two views, one function</div>
+          <p>The bowl \(f(x,y)=x^2+y^2\) is a paraboloid (left) whose <b>contour lines</b> — sets of equal height — are circles (right). Gradient descent is easiest to follow on the contour map: you always step perpendicular to the contours, straight downhill.</p>
+        </div>
+      </div>
+
+      <!-- 2.2 PARTIAL DERIVATIVES -->
+      <div class="block" id="w2-partial">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M7 4c5 0 1 16 6 16"/><path d="M5 12h7"/></svg></span>Partial derivatives</h3>
+        <p>A <b>partial derivative</b> asks: if I nudge just <em>one</em> input and freeze the rest, how does \(f\) change? Notation \(\dfrac{\partial f}{\partial x}\) or \(f_x\).</p>
+        <div class="callout key">
+          <div class="ct">⭐ The only rule you need</div>
+          <p>To compute \(\dfrac{\partial f}{\partial x}\), <b>treat every other variable as a constant</b> and differentiate normally with respect to \(x\). That's it.</p>
+        </div>
+
+        <div class="grid2">
+          <div class="example">
+            <div class="eh"><span class="tag">Example</span><span class="q">\(f(x,y)=x^2+y^2\)</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">\(\partial/\partial x\): treat \(y\) as constant.</span>\(y^2\) is a constant ⇒ derivative \(0\). So \(f_x = 2x\).</li>
+                <li><span class="sl">\(\partial/\partial y\): treat \(x\) as constant.</span>\(x^2\) is a constant ⇒ \(f_y = 2y\).</li>
+              </ol>
+              <div class="ans"><span>✓</span><div>\(f_x = 2x,\quad f_y = 2y\).</div></div>
+            </div>
+          </div>
+          <div class="example">
+            <div class="eh"><span class="tag">Example</span><span class="q">\(f(x,y)=3x^2y^3\)</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">\(f_x\): hold \(y^3\) fixed.</span>\(\frac{\partial}{\partial x}(3y^3\cdot x^2)=3y^3\cdot 2x = 6xy^3\)</li>
+                <li><span class="sl">\(f_y\): hold \(3x^2\) fixed.</span>\(\frac{\partial}{\partial y}(3x^2\cdot y^3)=3x^2\cdot 3y^2 = 9x^2y^2\)</li>
+              </ol>
+              <div class="ans"><span>✓</span><div>\(f_x = 6xy^3,\quad f_y = 9x^2y^2\).</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.3 THE GRADIENT -->
+      <div class="block" id="w2-grad">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg></span>The gradient: a vector of all the slopes</h3>
+        <p>Stack the partial derivatives into a vector. That's the <b>gradient</b> \(\nabla f\) (read "del f"):</p>
+        <div class="fbox eqn-lg">$$\nabla f(x,y)=\begin{pmatrix}\dfrac{\partial f}{\partial x}\\[6pt]\dfrac{\partial f}{\partial y}\end{pmatrix}\qquad\text{e.g. for } x^2+y^2:\quad \nabla f=\begin{pmatrix}2x\\2y\end{pmatrix}$$</div>
+        <div class="grid2">
+          <div class="callout key" style="margin:0">
+            <div class="ct">⭐ What the gradient means</div>
+            <p>The gradient <b>points in the direction of steepest ascent</b>, and its length is how steep that is. So \(-\nabla f\) points <b>straight downhill</b> — the fastest way to decrease the function.</p>
+          </div>
+          <div class="callout tip" style="margin:0">
+            <div class="ct">🎯 Optimization in 2D</div>
+            <p>At a minimum the surface is flat in <em>every</em> direction, so <b>every</b> partial is zero: \(\nabla f = \mathbf{0}\). For \(x^2+y^2\) that means \((2x,2y)=(0,0)\Rightarrow (x,y)=(0,0)\). ✓</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.4 GRADIENT DESCENT -->
+      <div class="block" id="w2-gd">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M5 4v16h16"/><path d="M19 7 C 12 8, 9 14, 8 19"/><path d="M8 19l-3-2M8 19l3-1"/></svg></span>Gradient descent</h3>
+        <p>Usually you <em>can't</em> solve \(\nabla f=\mathbf 0\) by hand — there are too many variables. So you walk downhill in small steps. Each step moves <b>against</b> the gradient, scaled by a <b>learning rate</b> \(\alpha\):</p>
+        <div class="fbox lined eqn-lg">$$\mathbf{p}_{\text{new}} = \mathbf{p}_{\text{old}} - \alpha\,\nabla f(\mathbf{p}_{\text{old}})$$</div>
+        <p class="muted" style="text-align:center;margin-top:-4px">"new point = old point − (learning rate) × (gradient)"</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 760 190" style="max-width:720px;width:100%" font-family="Inter">
+            <!-- three bowls (parabolas) with descent paths -->
+            <g>
+              <text x="120" y="22" font-size="13" fill="#b45309" font-weight="700" text-anchor="middle">α too small</text>
+              <path d="M40 40 Q120 175 200 40" fill="none" stroke="#cbd9ee" stroke-width="2.5"/>
+              <g fill="#d97706"><circle cx="58" cy="63" r="3.5"/><circle cx="70" cy="85" r="3.5"/><circle cx="80" cy="103" r="3.5"/><circle cx="88" cy="117" r="3.5"/><circle cx="94" cy="127" r="3.5"/><circle cx="99" cy="135" r="3.5"/></g>
+              <text x="120" y="172" font-size="11" fill="#94a3b8" text-anchor="middle">crawls slowly</text>
+            </g>
+            <g transform="translate(255,0)">
+              <text x="120" y="22" font-size="13" fill="#0f7a54" font-weight="700" text-anchor="middle">α just right</text>
+              <path d="M40 40 Q120 175 200 40" fill="none" stroke="#cbd9ee" stroke-width="2.5"/>
+              <g fill="#0f9d6b"><circle cx="58" cy="63" r="3.8"/><circle cx="95" cy="128" r="3.8"/><circle cx="118" cy="152" r="3.8"/><circle cx="120" cy="158" r="4.2"/></g>
+              <text x="120" y="172" font-size="11" fill="#94a3b8" text-anchor="middle">smooth &amp; fast</text>
+            </g>
+            <g transform="translate(510,0)">
+              <text x="120" y="22" font-size="13" fill="#be123c" font-weight="700" text-anchor="middle">α too large</text>
+              <path d="M40 40 Q120 175 200 40" fill="none" stroke="#cbd9ee" stroke-width="2.5"/>
+              <polyline points="58,63 170,80 70,108 160,128 88,150" fill="none" stroke="#e11d48" stroke-width="2" stroke-dasharray="3 3"/>
+              <g fill="#e11d48"><circle cx="58" cy="63" r="3.5"/><circle cx="170" cy="80" r="3.5"/><circle cx="70" cy="108" r="3.5"/><circle cx="160" cy="128" r="3.5"/></g>
+              <text x="120" y="172" font-size="11" fill="#94a3b8" text-anchor="middle">overshoots / diverges</text>
+            </g>
+          </svg>
+          <div class="cap">The learning rate \(\alpha\) is the single most important knob in training. Same surface, three step sizes.</div>
+        </div>
+        <div class="grid3">
+          <div class="callout warn" style="margin:0"><div class="ct">α too small</div><p>Tiny steps — it crawls and may not arrive in time.</p></div>
+          <div class="callout tip" style="margin:0"><div class="ct">α just right</div><p>Smooth, quick convergence into the valley.</p></div>
+          <div class="callout warn" style="margin:0"><div class="ct">α too large</div><p>It overshoots, bounces across the valley, or <b>diverges</b>.</p></div>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">One descent step on \(f(x,y)=x^2+y^2\), start \((0.5,\,0.6)\), \(\alpha=0.1\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Gradient.</span>\(\nabla f = (2x,2y) = (1.0,\,1.2)\) at \((0.5,0.6)\).</li>
+              <li><span class="sl">Step against it.</span>\((x,y) \leftarrow (0.5,0.6) - 0.1\,(1.0,1.2)\)</li>
+              <li><span class="sl">Compute.</span>\((0.5-0.10,\; 0.6-0.12) = (0.40,\,0.48)\)</li>
+              <li><span class="sl">Cost dropped.</span>\(f:\,0.61 \to 0.39\). Repeat and it homes in on \((0,0)\).</li>
+            </ol>
+            <div class="ans"><span>✓</span><div>New point \((0.40,\,0.48)\). Each iteration multiplies the distance to the minimum by \((1-2\alpha)\) here — geometric decay toward the bottom.</div></div>
+          </div>
+        </div>
+
+        <div class="diagram">
+          <div class="flow">
+            <div class="fstep"><div class="fn">Step 0</div>Initialise parameters \(\mathbf p\) (random or zero)</div>
+            <div class="farrow">→</div>
+            <div class="fstep alt"><div class="fn">Step 1</div>Compute gradient \(\nabla f(\mathbf p)\)</div>
+            <div class="farrow">→</div>
+            <div class="fstep alt"><div class="fn">Step 2</div>Update \(\mathbf p \leftarrow \mathbf p - \alpha\nabla f\)</div>
+            <div class="farrow">→</div>
+            <div class="fstep"><div class="fn">Step 3</div>Converged? \(\;|\nabla f|\approx 0\)?</div>
+          </div>
+          <div class="cap">No → loop back to Step 1.&nbsp;&nbsp;Yes → stop, you're at a minimum. This loop trains everything from linear regression to GPT.</div>
+        </div>
+      </div>
+
+      <!-- DESCENT VISUALIZER TOOL -->
+      <div class="block" id="w2-descent">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M8 13l4 4 4-4"/></svg></span>Interactive: gradient-descent visualizer</h3>
+        <p>Watch the ball roll downhill on a contour map. <b>Click anywhere</b> to set a new start, drag the <b>learning rate</b>, and switch surfaces. Try cranking \(\alpha\) up until it overshoots and spirals out.</p>
+        <div class="tool" id="gd-tool">
+          <div class="th">
+            <span class="ti"><svg viewBox="0 0 24 24" stroke-width="2"><circle cx="7" cy="7" r="2"/><path d="M7 9 C 9 14, 14 16, 18 17"/></svg></span>
+            <span class="tt">Gradient Descent Visualizer</span>
+            <span class="ts">click the map to drop the ball</span>
+          </div>
+          <div class="tbody">
+            <div class="controls">
+              <div class="ctrl" style="min-width:auto">
+                <label>Surface</label>
+                <div class="seg" id="gd-fn">
+                  <button data-f="bowl" class="on">bowl x²+y²</button>
+                  <button data-f="ell">ellipse 3x²+y²</button>
+                  <button data-f="rosen">banana valley</button>
+                </div>
+              </div>
+              <div class="ctrl">
+                <label>Learning rate α <b id="gd-a-lab">0.100</b></label>
+                <input type="range" id="gd-a" min="0.005" max="0.6" step="0.005" value="0.1">
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn" id="gd-play">▶ Run</button>
+                <button class="btn ghost" id="gd-step">Step</button>
+                <button class="btn ghost" id="gd-reset">Reset</button>
+              </div>
+            </div>
+            <canvas id="gd-canvas" width="860" height="430"></canvas>
+            <div class="readout">
+              <div class="stat"><div class="k">iteration</div><div class="v" id="gd-it">0</div></div>
+              <div class="stat"><div class="k">position</div><div class="v" id="gd-pos" style="font-size:14px">(1.6, 1.6)</div></div>
+              <div class="stat"><div class="k">cost f</div><div class="v" id="gd-cost">5.12</div></div>
+              <div class="stat"><div class="k">|gradient|</div><div class="v" id="gd-gnorm">4.53</div></div>
+            </div>
+            <div class="mini-legend">
+              <span><i style="background:linear-gradient(90deg,#1e3a8a,#bfdbfe)"></i> height (dark = low)</span>
+              <span><i style="background:#e11d48"></i> path of descent</span>
+              <span><i style="background:#0f9d6b"></i> minimum</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2.6 LINEAR REGRESSION -->
+      <div class="block" id="w2-linreg">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 19h16"/><path d="M4 19L20 6"/><circle cx="7" cy="16" r="1.4" fill="#2563eb" stroke="none"/><circle cx="11" cy="13" r="1.4" fill="#2563eb" stroke="none"/><circle cx="15" cy="11" r="1.4" fill="#2563eb" stroke="none"/></svg></span>Putting it together: linear regression <span class="tag-ml">the payoff</span></h3>
+        <p>Back to the house prices. We fit \(\hat y = mx + b\) by choosing \(m,b\) to minimise the squared-error cost:</p>
+        <div class="fbox lined">$$E(m,b)=\frac{1}{n}\sum_{i=1}^{n}\big(mx_i + b - y_i\big)^2$$</div>
+        <p>This is a <b>bowl</b> in \((m,b)\)-space. Its gradient (chain rule on each squared term):</p>
+        <div class="fbox">$$\frac{\partial E}{\partial m}=\frac{2}{n}\sum_i (mx_i+b-y_i)\,x_i,\qquad \frac{\partial E}{\partial b}=\frac{2}{n}\sum_i (mx_i+b-y_i)$$</div>
+
+        <div class="grid2">
+          <div class="card" style="margin:0">
+            <h4 style="margin-top:0">Method 1 — Analytical (set \(\nabla E=\mathbf 0\))</h4>
+            <p style="font-size:14.7px">Solve the two equations \(E_m=0,\,E_b=0\) exactly. They're linear in \(m,b\), giving the famous closed form:</p>
+            <div class="fbox tight" style="font-size:.95em">$$m=\frac{\overline{xy}-\bar x\,\bar y}{\overline{x^2}-\bar x^2},\quad b=\bar y - m\,\bar x$$</div>
+            <p class="muted" style="font-size:13.5px;margin-bottom:0">Exact and one-shot — but needs a matrix inverse that's too costly when there are millions of features.</p>
+          </div>
+          <div class="card" style="margin:0">
+            <h4 style="margin-top:0">Method 2 — Gradient descent</h4>
+            <p style="font-size:14.7px">Start anywhere and repeat:</p>
+            <div class="fbox tight" style="font-size:.92em">$$\begin{aligned}m &\leftarrow m - \alpha\,E_m\\ b &\leftarrow b - \alpha\,E_b\end{aligned}$$</div>
+            <p class="muted" style="font-size:13.5px;margin-bottom:0">Scales to enormous models — the same loop that trains deep nets. This is why we built all the machinery above.</p>
+          </div>
+        </div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Fit a line through \((1,2),(2,2),(3,4)\) analytically</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Means.</span>\(\bar x = 2,\ \bar y = \tfrac{2+2+4}{3}=\tfrac83\approx 2.667\).</li>
+              <li><span class="sl">Needed averages.</span>\(\overline{xy}=\tfrac{1\cdot2+2\cdot2+3\cdot4}{3}=\tfrac{18}{3}=6,\quad \overline{x^2}=\tfrac{1+4+9}{3}=\tfrac{14}{3}\approx4.667\).</li>
+              <li><span class="sl">Slope.</span>\(m=\dfrac{\overline{xy}-\bar x\bar y}{\overline{x^2}-\bar x^2}=\dfrac{6-2(2.667)}{4.667-4}=\dfrac{0.667}{0.667}=1\).</li>
+              <li><span class="sl">Intercept.</span>\(b=\bar y-m\bar x = 2.667-1(2)=0.667\).</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>Best-fit line: \(\hat y = x + \tfrac23\).</b> Gradient descent, run long enough from any start, lands on this same \((m,b)\).</div></div>
+          </div>
+        </div>
+        <div class="callout ml">
+          <div class="ct">🤖 The thread, continued</div>
+          <p>Notice we're back to Week 1's idea — set the derivative to zero to optimize — but now in two dimensions, with the gradient doing the bookkeeping. Week 3 asks a sharper question: once we know the slope is zero, how do we know it's a <em>minimum</em>, and can we get there faster?</p>
+        </div>
+      </div>
+
+      <!-- WEEK 2 PRACTICE -->
+      <div class="block" id="w2-quiz">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Generative practice — Week 2</h3>
+        <p>Partial derivatives, gradients, and one full descent step — randomized each time.</p>
+        <div class="quiz" data-quiz="w2">
+          <div class="qh">
+            <span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>
+            <span class="qt">Gradient drill</span>
+            <span class="topic-sel">
+              <select class="qtopic seg" style="padding:7px 10px;border-radius:9px;border:1px solid var(--line);font-family:inherit;font-weight:650;font-size:13px;color:var(--ink-soft)">
+                <option value="mix">Mixed</option>
+                <option value="partial">Partial derivative</option>
+                <option value="gradient">Full gradient</option>
+                <option value="gdstep">Descent step</option>
+              </select>
+            </span>
+          </div>
+          <div class="qbody">
+            <div class="qprompt"></div>
+            <div class="ansrow">
+              <input type="text" class="qinput" placeholder="e.g. 6xy^3  or  (0.4, 0.48)" autocomplete="off">
+              <button class="btn check">Check</button>
+              <button class="btn ghost reveal">Reveal solution</button>
+              <button class="btn ghost next">New problem →</button>
+              <span class="streak" style="margin-left:auto"><span class="dot"></span><span class="sc">0</span> solved</span>
+            </div>
+            <div class="verdict"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ====================== WEEK 3 ====================== -->
+    <section class="week" id="w3">
+      <div class="wk-head">
+        <div>
+          <div class="num">Week 3</div>
+          <h2>Optimization in Neural Networks</h2>
+        </div>
+        <div class="badge">Second derivatives · Newton · backprop</div>
+      </div>
+      <p class="lead">A zero slope alone can't tell a peak from a valley from a saddle. The <b>second derivative</b> measures curvature and settles the question — it powers Newton's method, the Hessian test, and ultimately the backpropagation that trains neural networks.</p>
+
+      <!-- 3.1 SECOND DERIVATIVE -->
+      <div class="block" id="w3-second">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 18 Q10 18 12 10 T20 4"/><path d="M4 14h6"/></svg></span>The second derivative: curvature</h3>
+        <p>Differentiate twice. The <b>second derivative</b> \(f''(x)=\dfrac{d^2f}{dx^2}\) is the rate of change <em>of the rate of change</em> — how fast the slope itself is turning.</p>
+        <div class="callout note">
+          <div class="ct">🚗 Position → velocity → acceleration</div>
+          <p>If \(h(t)=-5t^2+20t\) is a ball's height, then velocity is \(h'(t)=-10t+20\) and acceleration is \(h''(t)=-10\) (constant gravity). First derivative = speed; second derivative = how the speed changes.</p>
+        </div>
+        <table class="dt">
+          <tr><th class="l">Sign of \(f''\)</th><th class="l">Shape</th><th class="l">Looks like</th><th class="l">A critical point (\(f'=0\)) is a…</th></tr>
+          <tr><td class="l">\(f''>0\)</td><td class="l"><b>Concave up</b> ⌣</td><td class="l">a cup / valley</td><td class="l"><b>minimum</b></td></tr>
+          <tr><td class="l">\(f''<0\)</td><td class="l"><b>Concave down</b> ⌢</td><td class="l">a cap / hill</td><td class="l"><b>maximum</b></td></tr>
+          <tr><td class="l">\(f''=0\)</td><td class="l">inflection / flat</td><td class="l">straightening out</td><td class="l">inconclusive</td></tr>
+        </table>
+        <div class="diagram">
+          <svg viewBox="0 0 620 210" style="max-width:560px;width:100%" font-family="Inter">
+            <g>
+              <path d="M40 40 Q140 220 240 40" fill="none" stroke="#0f9d6b" stroke-width="3.5"/>
+              <circle cx="140" cy="160" r="5.5" fill="#0f9d6b"/>
+              <text x="140" y="186" font-size="13" fill="#0f7a54" text-anchor="middle" font-weight="700">f″ &gt; 0 · concave up</text>
+              <text x="140" y="203" font-size="12" fill="#64748b" text-anchor="middle">a valley ⌣ → minimum</text>
+              <text x="200" y="60" font-size="20" fill="#86efac">⌣</text>
+            </g>
+            <g transform="translate(340,0)">
+              <path d="M40 170 Q140 -10 240 170" fill="none" stroke="#e11d48" stroke-width="3.5"/>
+              <circle cx="140" cy="50" r="5.5" fill="#e11d48"/>
+              <text x="140" y="186" font-size="13" fill="#be123c" text-anchor="middle" font-weight="700">f″ &lt; 0 · concave down</text>
+              <text x="140" y="203" font-size="12" fill="#64748b" text-anchor="middle">a hill ⌢ → maximum</text>
+            </g>
+          </svg>
+          <div class="cap">Curvature decides the type of a flat point. Same idea, opposite signs.</div>
+        </div>
+        <div class="callout key">
+          <div class="ct">⭐ The second-derivative test (1D)</div>
+          <p>Find where \(f'(x)=0\). Then check \(f''\) there: positive ⇒ minimum, negative ⇒ maximum. This is how you <em>prove</em> a critical point is the bottom of a valley.</p>
+        </div>
+      </div>
+
+      <!-- 3.2 NEWTON'S METHOD -->
+      <div class="block" id="w3-newton">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M4 4v16h16"/><path d="M6 16 Q11 5 19 7"/><line x1="9" y1="20" x2="14" y2="9" stroke-dasharray="3 3"/></svg></span>Newton's method — a smarter way downhill</h3>
+        <p>Gradient descent only knows the slope, so it inches along. <b>Newton's method</b> also uses curvature (the second derivative) to jump much closer to the target in one bound.</p>
+
+        <h4>First, root-finding</h4>
+        <p>To solve \(f(x)=0\): stand at \(x_k\), slide down the tangent line until it hits the x-axis, and land at:</p>
+        <div class="fbox">$$x_{k+1}=x_k-\frac{f(x_k)}{f'(x_k)}$$</div>
+
+        <h4>Then, optimization</h4>
+        <p>To <b>minimize</b> \(g(x)\) we want \(g'(x)=0\) — that's a root-finding problem for \(g'\). Apply Newton to \(g'\) instead of \(g\), which brings in the second derivative:</p>
+        <div class="fbox lined eqn-lg">$$x_{k+1}=x_k-\frac{g'(x_k)}{g''(x_k)}$$</div>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Minimize \(g(x)=e^{x}-\ln x\) with Newton's method</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Derivatives.</span>\(g'(x)=e^{x}-\dfrac1x,\qquad g''(x)=e^{x}+\dfrac1{x^2}\).</li>
+              <li><span class="sl">We need \(g'(x)=0\), i.e. \(e^{x}=\dfrac1x\).</span>No clean algebraic solution — so iterate.</li>
+              <li><span class="sl">Start at \(x_0=1\).</span>\(g'(1)=e-1=1.718,\ g''(1)=e+1=3.718\).<br>\(x_1 = 1-\dfrac{1.718}{3.718}=0.538\).</li>
+              <li><span class="sl">Iterate again.</span>\(x_2 = 0.538-\dfrac{g'(0.538)}{g''(0.538)}=0.566\), then \(x_3=0.5671\).</li>
+            </ol>
+            <div class="ans"><span>✓</span><div><b>Minimum at \(x^\star \approx 0.5671\)</b> — reached in ~3 steps. \(g''>0\) everywhere here, confirming it's a valley. Newton's quadratic convergence roughly <em>doubles the correct digits</em> each step.</div></div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="callout tip" style="margin:0"><div class="ct">👍 Newton's upside</div><p>Very fast near the answer; uses curvature, so it adapts its step size automatically — no learning rate to tune.</p></div>
+          <div class="callout warn" style="margin:0"><div class="ct">👎 The catch for ML</div><p>It needs the <b>Hessian</b> (all second derivatives) and its inverse. With millions of parameters that matrix is gigantic, so deep learning sticks with gradient descent and its cheaper cousins.</p></div>
+        </div>
+      </div>
+
+      <!-- 3.3 HESSIAN -->
+      <div class="block" id="w3-hessian">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg></span>The Hessian &amp; saddle points</h3>
+        <p>In many variables, the "second derivative" becomes a matrix of all second partials — the <b>Hessian</b> \(H\):</p>
+        <div class="fbox eqn-lg">$$H=\begin{pmatrix} f_{xx} & f_{xy}\\ f_{yx} & f_{yy}\end{pmatrix}\qquad(f_{xy}=f_{yx}\text{ for smooth }f)$$</div>
+        <div class="callout key">
+          <div class="ct">⭐ The Hessian test (2 variables)</div>
+          <p>At a critical point (where \(\nabla f=\mathbf 0\)), compute \(\det H = f_{xx}f_{yy}-f_{xy}^2\):</p>
+          <ul class="clean" style="margin-top:6px">
+            <li>\(\det H>0\) and \(f_{xx}>0\) ⇒ <b>local minimum</b> (bowl up)</li>
+            <li>\(\det H>0\) and \(f_{xx}<0\) ⇒ <b>local maximum</b> (bowl down)</li>
+            <li>\(\det H<0\) ⇒ <b>saddle point</b> (up one way, down another)</li>
+            <li>\(\det H=0\) ⇒ test is inconclusive</li>
+          </ul>
+          <p style="margin-bottom:0">Equivalently via <b>eigenvalues</b> of \(H\) (from \(\det(H-\lambda I)=0\)): all positive ⇒ min, all negative ⇒ max, mixed signs ⇒ saddle.</p>
+        </div>
+
+        <div class="diagram">
+          <svg viewBox="0 0 460 220" style="max-width:420px;width:100%" font-family="Inter">
+            <defs><linearGradient id="saddleG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfdbfe"/><stop offset="1" stop-color="#1e40af"/></linearGradient></defs>
+            <!-- saddle / pringle outline -->
+            <path d="M70 70 Q150 30 230 70 Q310 110 390 70" fill="none" stroke="#3b82f6" stroke-width="2"/>
+            <path d="M70 150 Q150 190 230 150 Q310 110 390 150" fill="none" stroke="#3b82f6" stroke-width="2"/>
+            <path d="M70 70 Q40 110 70 150" fill="none" stroke="#3b82f6" stroke-width="2"/>
+            <path d="M390 70 Q420 110 390 150" fill="none" stroke="#3b82f6" stroke-width="2"/>
+            <path d="M70 70 Q150 30 230 70 Q310 110 390 70 Q420 110 390 150 Q310 110 230 150 Q150 190 70 150 Q40 110 70 70 Z" fill="url(#saddleG)" opacity="0.28"/>
+            <!-- center critical point -->
+            <circle cx="230" cy="110" r="6" fill="#0f213e"/>
+            <!-- up arrows along one axis, down along other -->
+            <line x1="150" y1="50" x2="230" y2="104" stroke="#0f9d6b" stroke-width="2.4" marker-end="url(#au)"/>
+            <line x1="310" y1="50" x2="230" y2="104" stroke="#0f9d6b" stroke-width="2.4" marker-end="url(#au)"/>
+            <line x1="230" y1="116" x2="150" y2="178" stroke="#e11d48" stroke-width="2.4" marker-end="url(#ad)"/>
+            <line x1="230" y1="116" x2="310" y2="178" stroke="#e11d48" stroke-width="2.4" marker-end="url(#ad)"/>
+            <defs>
+              <marker id="au" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 8L4 0L8 8z" fill="#0f9d6b"/></marker>
+              <marker id="ad" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0L4 8L8 0z" fill="#e11d48"/></marker>
+            </defs>
+            <text x="150" y="40" font-size="11.5" fill="#0f7a54">min this way</text>
+            <text x="300" y="200" font-size="11.5" fill="#be123c">max this way</text>
+          </svg>
+          <div class="cap">A saddle point: \(f'=0\) and \(\nabla f=\mathbf 0\), yet it's neither a max nor a min — it curves up in one direction and down in another (\(\det H<0\)).</div>
+        </div>
+
+        <div class="grid2">
+          <div class="example">
+            <div class="eh"><span class="tag">Example · minimum</span><span class="q">\(f=2x^2+3y^2-xy\)</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">First partials → critical point.</span>\(f_x=4x-y,\ f_y=6y-x\Rightarrow (0,0)\).</li>
+                <li><span class="sl">Second partials.</span>\(f_{xx}=4,\ f_{yy}=6,\ f_{xy}=-1\).</li>
+                <li><span class="sl">Hessian &amp; determinant.</span>\(H=\begin{psmallmatrix}4&-1\\-1&6\end{psmallmatrix},\ \det H = 24-1=23>0\).</li>
+                <li><span class="sl">Classify.</span>\(\det H>0\) and \(f_{xx}=4>0\).</li>
+              </ol>
+              <div class="ans"><span>✓</span><div><b>Local minimum at \((0,0)\).</b> Eigenvalues \(5\pm\sqrt2\) — both positive. ✓</div></div>
+            </div>
+          </div>
+          <div class="example">
+            <div class="eh"><span class="tag">Example · saddle</span><span class="q">\(f=2x^2-2y^2\)</span></div>
+            <div class="ebody">
+              <ol class="steps">
+                <li><span class="sl">Critical point.</span>\(f_x=4x,\ f_y=-4y\Rightarrow (0,0)\).</li>
+                <li><span class="sl">Second partials.</span>\(f_{xx}=4,\ f_{yy}=-4,\ f_{xy}=0\).</li>
+                <li><span class="sl">Determinant.</span>\(\det H = (4)(-4)-0=-16<0\).</li>
+              </ol>
+              <div class="ans"><span>✓</span><div><b>Saddle point</b> — a minimum along \(x\), a maximum along \(y\). Eigenvalues \(+4,-4\) (mixed signs). These are everywhere in deep-learning loss landscapes.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3.4 NEURAL NETWORKS -->
+      <div class="block" id="w3-nn">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 6l3 5M7 18l3-5M14 12h3"/></svg></span>Neural networks: a stack of functions <span class="tag-ml">ML</span></h3>
+        <p>A neural network is just nested functions. Each layer takes the previous layer's output \(a^{[l-1]}\), applies a linear map (weights \(w\), bias \(b\)), then a nonlinear <b>activation</b> \(\sigma\):</p>
+        <div class="fbox lined">$$z^{[l]}=w^{[l]}a^{[l-1]}+b^{[l]},\qquad a^{[l]}=\sigma\!\big(z^{[l]}\big)$$</div>
+        <p>Running these layer by layer from input \(x\) to prediction \(\hat y\) is the <b>forward pass</b>:</p>
+        <div class="diagram">
+          <svg viewBox="0 0 720 320" style="max-width:700px;width:100%" font-family="Inter">
+            <defs>
+              <marker id="fa" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9z" fill="#93c5fd"/></marker>
+            </defs>
+            <!-- layer band labels -->
+            <text x="90" y="28" font-size="13" fill="#1d4ed8" text-anchor="middle" font-weight="800">Input</text>
+            <text x="320" y="28" font-size="13" fill="#1d4ed8" text-anchor="middle" font-weight="800">Hidden layer [1]</text>
+            <text x="560" y="28" font-size="13" fill="#1d4ed8" text-anchor="middle" font-weight="800">Output [2]</text>
+            <!-- edges input->hidden -->
+            <g stroke="#bfdbfe" stroke-width="1.6" marker-end="url(#fa)">
+              <line x1="112" y1="110" x2="278" y2="80"/><line x1="112" y1="110" x2="278" y2="160"/><line x1="112" y1="110" x2="278" y2="240"/>
+              <line x1="112" y1="210" x2="278" y2="80"/><line x1="112" y1="210" x2="278" y2="160"/><line x1="112" y1="210" x2="278" y2="240"/>
+            </g>
+            <!-- edges hidden->output -->
+            <g stroke="#bfdbfe" stroke-width="1.6" marker-end="url(#fa)">
+              <line x1="342" y1="80" x2="522" y2="160"/><line x1="342" y1="160" x2="522" y2="160"/><line x1="342" y1="240" x2="522" y2="160"/>
+            </g>
+            <!-- input nodes -->
+            <g>
+              <circle cx="90" cy="110" r="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/><text x="90" y="116" font-size="16" text-anchor="middle" fill="#1d4ed8">x₁</text>
+              <circle cx="90" cy="210" r="22" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/><text x="90" y="216" font-size="16" text-anchor="middle" fill="#1d4ed8">x₂</text>
+            </g>
+            <!-- hidden nodes -->
+            <g>
+              <circle cx="320" cy="80" r="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/><text x="320" y="86" font-size="13" text-anchor="middle" fill="#1d4ed8">a₁⁽¹⁾</text>
+              <circle cx="320" cy="160" r="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/><text x="320" y="166" font-size="13" text-anchor="middle" fill="#1d4ed8">a₂⁽¹⁾</text>
+              <circle cx="320" cy="240" r="24" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/><text x="320" y="246" font-size="13" text-anchor="middle" fill="#1d4ed8">a₃⁽¹⁾</text>
+            </g>
+            <!-- output node -->
+            <circle cx="560" cy="160" r="26" fill="#bfdbfe" stroke="#1d4ed8" stroke-width="3"/><text x="560" y="166" font-size="15" text-anchor="middle" fill="#1d4ed8" font-weight="700">ŷ</text>
+            <text x="635" y="166" font-size="15" fill="#0f7a54" font-weight="700">→ ŷ</text>
+            <!-- equations -->
+            <text x="320" y="300" font-size="13" text-anchor="middle" fill="#475569">z⁽¹⁾ = w⁽¹⁾x + b⁽¹⁾ ,&nbsp; a⁽¹⁾ = σ(z⁽¹⁾)</text>
+            <text x="560" y="300" font-size="13" text-anchor="middle" fill="#475569">ŷ = σ(w⁽²⁾a⁽¹⁾ + b⁽²⁾)</text>
+          </svg>
+          <div class="cap">Forward pass: data flows left → right, each layer applying "linear map, then activation." Backprop later sends gradients right → left.</div>
+        </div>
+        <p>The most common activation in this course is the <b>sigmoid</b>, whose derivative folds back on itself — a gift for backprop:</p>
+        <div class="fbox">$$\sigma(z)=\frac{1}{1+e^{-z}},\qquad \sigma'(z)=\sigma(z)\big(1-\sigma(z)\big)=a(1-a)$$</div>
+        <p>We score the prediction with a <b>loss</b> \(L(y,\hat y)\) (e.g. squared error \(\tfrac12(\hat y-y)^2\) or log-loss). Training = minimise \(L\) over all the weights and biases by gradient descent. The only missing piece: how to get \(\dfrac{\partial L}{\partial w}\) for weights buried deep in the stack. That's backpropagation.</p>
+      </div>
+
+      <!-- 3.5 BACKPROP -->
+      <div class="block" id="w3-backprop">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M20 8H8a4 4 0 0 0 0 8h8"/><path d="M11 5L8 8l3 3"/></svg></span>Backpropagation = the chain rule, run backward</h3>
+        <p>To update a weight we need its effect on the loss. The weight sits at the bottom of a chain \(w \to z \to a \to L\), so by the <b>chain rule</b> we multiply the local derivatives along that chain — computing them from the output backward to reuse work.</p>
+
+        <div class="example">
+          <div class="eh"><span class="tag">Worked example</span><span class="q">Backprop through one sigmoid neuron: \(\;a=\sigma(z),\ z=wx+b,\ L=\tfrac12(a-y)^2\)</span></div>
+          <div class="ebody">
+            <ol class="steps">
+              <li><span class="sl">Local derivative — loss vs activation.</span>\(\dfrac{\partial L}{\partial a}=(a-y)\)</li>
+              <li><span class="sl">Activation vs pre-activation (sigmoid).</span>\(\dfrac{\partial a}{\partial z}=a(1-a)\)</li>
+              <li><span class="sl">Pre-activation vs weight.</span>\(\dfrac{\partial z}{\partial w}=x\)</li>
+              <li><span class="sl">Multiply the chain.</span>\(\dfrac{\partial L}{\partial w}=\underbrace{(a-y)}_{\partial L/\partial a}\cdot\underbrace{a(1-a)}_{\partial a/\partial z}\cdot\underbrace{x}_{\partial z/\partial w}\)</li>
+              <li><span class="sl">Update the weight.</span>\(w \leftarrow w-\alpha\,\dfrac{\partial L}{\partial w}\) (and similarly \(b\leftarrow b-\alpha(a-y)a(1-a)\)).</li>
+            </ol>
+            <div class="ans"><span>✓</span><div>The whole of deep-learning training is this chain, automated across millions of weights. <b>The chain rule from Week 1 is the engine of backpropagation.</b></div></div>
+          </div>
+        </div>
+
+        <div class="diagram">
+          <div class="flow">
+            <div class="fstep alt"><div class="fn">1 · Forward</div>Run \(x\) through the layers to get \(\hat y\)</div>
+            <div class="farrow">→</div>
+            <div class="fstep alt"><div class="fn">2 · Loss</div>Measure error \(L(y,\hat y)\)</div>
+            <div class="farrow">→</div>
+            <div class="fstep"><div class="fn">3 · Backward</div>Chain-rule \(\dfrac{\partial L}{\partial w},\dfrac{\partial L}{\partial b}\) from output back to input</div>
+            <div class="farrow">→</div>
+            <div class="fstep"><div class="fn">4 · Update</div>\(w \leftarrow w-\alpha\dfrac{\partial L}{\partial w}\) for every weight</div>
+          </div>
+          <div class="cap">Repeat over the data until the loss stops dropping. Step 3 is backpropagation; steps 1–4 together are one training iteration.</div>
+        </div>
+
+        <!-- BACKPROP ANIMATOR -->
+        <h4 style="margin-top:26px">Interactive: forward pass &amp; backpropagation animator</h4>
+        <p>A live 2-2-1 sigmoid network. Press <b>Forward</b> to flow activations left→right, <b>Backpropagate</b> to flow gradients right→left, then <b>Update</b> to take one gradient-descent step and watch the loss drop. Real numbers, computed in your browser.</p>
+        <div class="tool" id="bp-tool">
+          <div class="th">
+            <span class="ti"><svg viewBox="0 0 24 24" stroke-width="2"><circle cx="6" cy="7" r="1.8"/><circle cx="6" cy="17" r="1.8"/><circle cx="13" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/><path d="M7.6 7.7l4 3.5M7.6 16.3l4-3.5M15 12h2.2"/></svg></span>
+            <span class="tt">Neural Network · Forward + Backprop</span>
+            <span class="ts">2 → 2 → 1, sigmoid</span>
+          </div>
+          <div class="tbody">
+            <div class="controls">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button class="btn" id="bp-fwd">▶ Forward</button>
+                <button class="btn" id="bp-back" style="background:#e11d48;border-color:#e11d48">◀ Backpropagate</button>
+                <button class="btn ghost" id="bp-step">Update weights (GD step)</button>
+                <button class="btn ghost" id="bp-auto">⟳ Train 25×</button>
+                <button class="btn ghost" id="bp-reset">Reset</button>
+              </div>
+              <div class="ctrl">
+                <label>Learning rate α <b id="bp-a-lab">0.50</b></label>
+                <input type="range" id="bp-a" min="0.05" max="3" step="0.05" value="0.5">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.45fr 1fr;gap:16px;align-items:start" id="bp-layout">
+              <canvas id="bp-canvas" width="560" height="420"></canvas>
+              <div>
+                <div class="stat" style="width:100%;margin-bottom:10px"><div class="k">Loss  ½(ŷ − y)²</div><div class="v" id="bp-loss" style="font-size:22px">—</div></div>
+                <canvas id="bp-spark" width="320" height="90" style="margin-bottom:10px"></canvas>
+                <div id="bp-log" style="font-family:var(--mono);font-size:12px;line-height:1.55;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;min-height:150px;color:var(--ink-soft);white-space:pre-wrap"></div>
+              </div>
+            </div>
+            <div class="mini-legend">
+              <span><i style="background:#2563eb"></i> forward (activations a)</span>
+              <span><i style="background:#e11d48"></i> backward (gradients δ)</span>
+              <span><i style="background:#0f9d6b"></i> target y = 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEEK 3 PRACTICE -->
+      <div class="block" id="w3-quiz">
+        <h3><span class="ix"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Generative practice — Week 3</h3>
+        <p>Second derivatives, a Newton step, Hessian classification, and backprop chains — all randomized.</p>
+        <div class="quiz" data-quiz="w3">
+          <div class="qh">
+            <span class="qi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/></svg></span>
+            <span class="qt">Curvature &amp; nets drill</span>
+            <span class="topic-sel">
+              <select class="qtopic seg" style="padding:7px 10px;border-radius:9px;border:1px solid var(--line);font-family:inherit;font-weight:650;font-size:13px;color:var(--ink-soft)">
+                <option value="mix">Mixed</option>
+                <option value="second">Second derivative</option>
+                <option value="newton">Newton step</option>
+                <option value="hessian">Classify critical point</option>
+                <option value="sigmoid">Sigmoid derivative</option>
+              </select>
+            </span>
+          </div>
+          <div class="qbody">
+            <div class="qprompt"></div>
+            <div class="ansrow">
+              <input type="text" class="qinput" placeholder="e.g. 12x^2 - 6   or   minimum" autocomplete="off">
+              <button class="btn check">Check</button>
+              <button class="btn ghost reveal">Reveal solution</button>
+              <button class="btn ghost next">New problem →</button>
+              <span class="streak" style="margin-left:auto"><span class="dot"></span><span class="sc">0</span> solved</span>
+            </div>
+            <div class="verdict"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ====================== REFERENCE ====================== -->
+    <section class="week" id="cheatsheet">
+      <div class="wk-head">
+        <div><div class="num">Reference</div><h2>Formula cheat-sheet</h2></div>
+        <div class="badge">Everything on one screen</div>
+      </div>
+      <div class="grid2">
+        <div class="card" style="margin:0">
+          <h4 style="margin-top:0">Core derivatives</h4>
+          <table class="dt rules-tbl" style="margin:6px 0 0">
+            <tr><th class="l">\(f\)</th><th class="l">\(f'\)</th></tr>
+            <tr><td class="l">\(c\)</td><td class="l">\(0\)</td></tr>
+            <tr><td class="l">\(x^n\)</td><td class="l">\(n x^{n-1}\)</td></tr>
+            <tr><td class="l">\(e^x\)</td><td class="l">\(e^x\)</td></tr>
+            <tr><td class="l">\(\ln x\)</td><td class="l">\(1/x\)</td></tr>
+            <tr><td class="l">\(\sin x\)</td><td class="l">\(\cos x\)</td></tr>
+            <tr><td class="l">\(\cos x\)</td><td class="l">\(-\sin x\)</td></tr>
+            <tr><td class="l">\(\sigma(x)\)</td><td class="l">\(\sigma(x)(1-\sigma(x))\)</td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin:0">
+          <h4 style="margin-top:0">Combining rules</h4>
+          <table class="dt rules-tbl" style="margin:6px 0 0">
+            <tr><th class="l">Rule</th><th class="l">Formula</th></tr>
+            <tr><td class="l">Sum</td><td class="l">\((f+g)'=f'+g'\)</td></tr>
+            <tr><td class="l">Scalar</td><td class="l">\((cf)'=cf'\)</td></tr>
+            <tr><td class="l">Product</td><td class="l">\((fg)'=f'g+fg'\)</td></tr>
+            <tr><td class="l">Chain</td><td class="l">\(f(g(x))'=f'(g)\,g'\)</td></tr>
+            <tr><td class="l">Inverse</td><td class="l">\((f^{-1})'=1/f'(f^{-1})\)</td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin:0">
+          <h4 style="margin-top:0">Gradients &amp; descent</h4>
+          <div class="fbox tight" style="text-align:left;font-size:.92em">$$\nabla f=\Big(\tfrac{\partial f}{\partial x_1},\dots,\tfrac{\partial f}{\partial x_n}\Big)$$
+          $$\mathbf p \leftarrow \mathbf p-\alpha\,\nabla f$$</div>
+          <p class="muted" style="font-size:13.5px;margin:8px 0 0">Minimum ⟺ \(\nabla f=\mathbf0\). \(-\nabla f\) is steepest descent; \(\alpha\) is the learning rate.</p>
+        </div>
+        <div class="card" style="margin:0">
+          <h4 style="margin-top:0">Curvature: Newton &amp; Hessian</h4>
+          <div class="fbox tight" style="text-align:left;font-size:.9em">$$x_{k+1}=x_k-\tfrac{g'(x_k)}{g''(x_k)}$$
+          $$H=\begin{psmallmatrix}f_{xx}&f_{xy}\\f_{yx}&f_{yy}\end{psmallmatrix}$$</div>
+          <p class="muted" style="font-size:13.3px;margin:8px 0 0">\(\det H>0,f_{xx}>0\Rightarrow\) min; \(\det H>0,f_{xx}<0\Rightarrow\) max; \(\det H<0\Rightarrow\) saddle.</p>
+        </div>
+      </div>
+      <div class="callout ml" style="margin-top:18px">
+        <div class="ct">🤖 The one-line summary of the whole course</div>
+        <p><b>Training a model = minimising a cost.</b> Differentiate the cost, set the gradient to zero (or walk against it), and use the second derivative to know you've found a valley. Backpropagation is just the chain rule applying this to every weight in a neural network.</p>
+      </div>
+    </section>
+
+    <section class="week" id="glossary">
+      <div class="wk-head">
+        <div><div class="num">Reference</div><h2>Glossary</h2></div>
+        <div class="badge">Key terms, plain English</div>
+      </div>
+      <div class="card">
+        <div class="def"><div class="term">Derivative \(f'\)</div><div class="desc">Instantaneous rate of change; the slope of the tangent line. Limit of rise-over-run as the run shrinks to zero.</div></div>
+        <div class="def"><div class="term">Tangent line</div><div class="desc">The straight line that just grazes a curve at a point, matching its slope there.</div></div>
+        <div class="def"><div class="term">Power rule</div><div class="desc">\(\frac{d}{dx}x^n=nx^{n-1}\) — bring the exponent down, subtract one.</div></div>
+        <div class="def"><div class="term">Chain rule</div><div class="desc">Derivative of a composition: outside′ × inside′. The mathematical engine of backpropagation.</div></div>
+        <div class="def"><div class="term">\(e\)</div><div class="desc">≈ 2.71828, the limit of \((1+1/n)^n\); \(e^x\) is its own derivative.</div></div>
+        <div class="def"><div class="term">Partial derivative</div><div class="desc">Derivative with respect to one variable, holding the others constant.</div></div>
+        <div class="def"><div class="term">Gradient \(\nabla f\)</div><div class="desc">Vector of all partial derivatives; points in the direction of steepest ascent.</div></div>
+        <div class="def"><div class="term">Gradient descent</div><div class="desc">Iterative optimization: repeatedly step against the gradient by a learning rate \(\alpha\).</div></div>
+        <div class="def"><div class="term">Learning rate \(\alpha\)</div><div class="desc">Step-size knob. Too small = slow; too large = overshoot/diverge.</div></div>
+        <div class="def"><div class="term">Cost / loss</div><div class="desc">A number measuring how wrong a model is; training minimises it.</div></div>
+        <div class="def"><div class="term">Least squares</div><div class="desc">Minimising the sum of squared errors; its minimiser is the mean / best-fit line.</div></div>
+        <div class="def"><div class="term">Second derivative \(f''\)</div><div class="desc">Rate of change of the slope; measures curvature (concavity).</div></div>
+        <div class="def"><div class="term">Concave up / down</div><div class="desc">\(f''>0\): cup-shaped (valley). \(f''<0\): cap-shaped (hill).</div></div>
+        <div class="def"><div class="term">Newton's method</div><div class="desc">Optimization using curvature: \(x_{k+1}=x_k-g'/g''\). Converges quadratically.</div></div>
+        <div class="def"><div class="term">Hessian \(H\)</div><div class="desc">Matrix of all second partial derivatives; its sign-structure classifies critical points.</div></div>
+        <div class="def"><div class="term">Saddle point</div><div class="desc">A flat point that's a min in one direction and a max in another (\(\det H<0\)).</div></div>
+        <div class="def"><div class="term">Sigmoid \(\sigma\)</div><div class="desc">\(1/(1+e^{-z})\); squashes any number into \((0,1)\). Derivative \(=a(1-a)\).</div></div>
+        <div class="def"><div class="term">Forward pass</div><div class="desc">Computing a network's prediction by running inputs through every layer.</div></div>
+        <div class="def"><div class="term">Backpropagation</div><div class="desc">Computing loss gradients for every weight by applying the chain rule backward through the network.</div></div>
+      </div>
+    </section>
+
+
+    <footer>
+      <div class="fg">
+        <div style="max-width:420px">
+          <strong style="color:var(--ink)">Calculus for Machine Learning — Interactive Review</strong>
+          <p style="margin-top:6px">Compiled from your Course 2 lecture slides (Weeks 1–3). Equations rendered with MathJax; all tools run locally in your browser — no internet needed after first load.</p>
+        </div>
+        <div>
+          <strong style="color:var(--ink)">Jump to</strong>
+          <p style="margin-top:6px"><a href="#w1">Week 1</a> · <a href="#w2">Week 2</a> · <a href="#w3">Week 3</a> · <a href="#cheatsheet">Cheat-sheet</a> · <a href="#glossary">Glossary</a></p>
+        </div>
+      </div>
+      <p style="margin-top:20px;font-size:12.5px;color:var(--faint)">Made for self-study review. Tip: come back to the practice generators — they create new numbers every time.</p>
+    </footer>
+  </main>
+</div>
+
+<button class="toTop" id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+"use strict";
+/* ============================================================
+   0 · SHARED HELPERS
+   ============================================================ */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const ri = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const nz  = (a,b)=>{let v;do{v=ri(a,b)}while(v===0);return v;};
+const sig = z=>1/(1+Math.exp(-z));
+const fmt = (x,d=2)=>{ if(!isFinite(x))return '—'; const r=Math.round(x*10**d)/10**d; return (Object.is(r,-0)?0:r).toString(); };
+const sup = n=>({'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','-':'⁻'}[n]||n);
+function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise(el?[el]:undefined).catch(()=>{}); } }
+
+/* canvas mouse → internal coords (accounts for CSS scaling) */
+function evPos(canvas,e){
+  const r=canvas.getBoundingClientRect();
+  const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  return { x: cx*canvas.width/r.width, y: cy*canvas.height/r.height };
+}
+
+/* ============================================================
+   1 · NAVIGATION · progress · scroll-spy · mobile menu
+   ============================================================ */
+function toggleNav(open){
+  const sb=$('#sidebar'), sc=$('#scrim');
+  if(open===undefined) open=!sb.classList.contains('open');
+  sb.classList.toggle('open',open); sc.classList.toggle('show',open);
+}
+window.toggleNav=toggleNav;
+$$('#nav a').forEach(a=>a.addEventListener('click',()=>{ if(window.innerWidth<=980) toggleNav(false); }));
+
+(function navSpy(){
+  const links=$$('#nav a[href^="#"]');
+  const map={}; links.forEach(l=>map[l.getAttribute('href').slice(1)]=l);
+  const targets=Object.keys(map).map(id=>document.getElementById(id)).filter(Boolean);
+  const crumbMap={w1:'Week 1 · Derivatives',w2:'Week 2 · Gradients',w3:'Week 3 · Neural Networks',cheatsheet:'Reference',glossary:'Reference'};
+  let current=null;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{ en.target.__vis=en.isIntersecting?en.intersectionRatio:0; });
+    let best=null,bestY=Infinity;
+    targets.forEach(t=>{ const r=t.getBoundingClientRect(); if(r.top<window.innerHeight*0.4 && r.bottom>0){ if(r.top<bestY){bestY=r.top;best=t;} } });
+    if(best && best.id!==current){
+      current=best.id;
+      links.forEach(l=>l.classList.remove('active'));
+      if(map[current]) map[current].classList.add('active');
+      const wk=best.closest('section.week');
+      if(wk&&crumbMap[wk.id]) $('#crumb').innerHTML='Calculus for ML · <b>'+crumbMap[wk.id]+'</b>';
+    }
+  },{rootMargin:'-10% 0px -55% 0px',threshold:[0,.25,.5,1]});
+  targets.forEach(t=>io.observe(t));
+})();
+
+function onScroll(){
+  const h=document.documentElement;
+  const sc=h.scrollTop||document.body.scrollTop;
+  const max=(h.scrollHeight-h.clientHeight)||1;
+  $('#progress').style.width=(sc/max*100)+'%';
+  $('#toTop').classList.toggle('show',sc>520);
+}
+window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+/* ============================================================
+   2 · TANGENT / DERIVATIVE EXPLORER
+   ============================================================ */
+(function tangentTool(){
+  const cv=$('#te-canvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height, pad=38;
+  const FUN={
+    sq:   {f:x=>x*x,         df:x=>2*x,        lbl:'2x',     xD:[-3,3],    yD:[-1,9.5]},
+    cube: {f:x=>x*x*x,       df:x=>3*x*x,      lbl:'3x²',    xD:[-2.3,2.3],yD:[-13,13]},
+    sin:  {f:x=>Math.sin(x), df:x=>Math.cos(x),lbl:'cos x',  xD:[-3.3,3.3],yD:[-1.6,1.6]},
+    exp:  {f:x=>Math.exp(x), df:x=>Math.exp(x),lbl:'eˣ',     xD:[-2.6,2.2],yD:[-1,9.5]},
+    wave: {f:x=>x*x*x/3-x,   df:x=>x*x-1,      lbl:'x² − 1', xD:[-3,3],    yD:[-7,7]}
+  };
+  let key='sq', cur=FUN.sq, px=1, dragging=false, showSec=false;
+  const sx=x=>pad+(x-cur.xD[0])/(cur.xD[1]-cur.xD[0])*(W-2*pad);
+  const sy=y=>H-pad-(y-cur.yD[0])/(cur.yD[1]-cur.yD[0])*(H-2*pad);
+  const ix=p=>cur.xD[0]+(p-pad)/(W-2*pad)*(cur.xD[1]-cur.xD[0]);
+
+  function grid(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='#eef3fb'; ctx.lineWidth=1; ctx.fillStyle='#9fb2cf'; ctx.font='11px Inter';
+    for(let gx=Math.ceil(cur.xD[0]);gx<=cur.xD[1];gx++){ const X=sx(gx); ctx.beginPath();ctx.moveTo(X,pad);ctx.lineTo(X,H-pad);ctx.stroke(); if(gx!==0)ctx.fillText(gx,X-3,H-pad+15); }
+    const step=(cur.yD[1]-cur.yD[0])>20?5:(cur.yD[1]-cur.yD[0])>8?2:1;
+    for(let gy=Math.ceil(cur.yD[0]/step)*step;gy<=cur.yD[1];gy+=step){ const Y=sy(gy); ctx.beginPath();ctx.moveTo(pad,Y);ctx.lineTo(W-pad,Y);ctx.stroke(); if(gy!==0)ctx.fillText(gy,4,Y+3); }
+    ctx.strokeStyle='#9fb2cf'; ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(pad,sy(0));ctx.lineTo(W-pad,sy(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(0),pad);ctx.lineTo(sx(0),H-pad);ctx.stroke();
+  }
+  function curve(){
+    ctx.strokeStyle='#2563eb'; ctx.lineWidth=3; ctx.beginPath();
+    let started=false;
+    for(let p=pad;p<=W-pad;p+=2){ const x=ix(p), y=cur.f(x); if(y<cur.yD[0]-2||y>cur.yD[1]+2){started=false;continue;} const Y=sy(y); if(!started){ctx.moveTo(p,Y);started=true;}else ctx.lineTo(p,Y); }
+    ctx.stroke();
+  }
+  function draw(){
+    grid(); curve();
+    const x=px, y=cur.f(x), m=cur.df(x);
+    if(showSec){ const dx=0.8, x2=x+dx, y2=cur.f(x2);
+      ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+      const ms=(y2-y)/dx; ctx.beginPath();
+      ctx.moveTo(sx(x-0.4),sy(y-ms*0.4)); ctx.lineTo(sx(x2+0.4),sy(y2+ms*0.4)); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle='#64748b';
+      ctx.beginPath();ctx.arc(sx(x2),sy(y2),4,0,7);ctx.fill();
+      ctx.fillText('Δx',sx(x+dx/2)-6,sy(Math.min(y,y2))+ (y2>y?18:-10));
+    }
+    // tangent
+    const t=1.6; ctx.strokeStyle='#1d4ed8'; ctx.lineWidth=2.4;
+    ctx.beginPath(); ctx.moveTo(sx(x-t),sy(y-m*t)); ctx.lineTo(sx(x+t),sy(y+m*t)); ctx.stroke();
+    // point
+    ctx.fillStyle='#e11d48'; ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(sx(x),sy(y),7,0,7); ctx.fill(); ctx.stroke();
+    // slope flag
+    ctx.fillStyle='#1d4ed8'; ctx.font='bold 13px Inter';
+    ctx.fillText('slope = '+fmt(m,2), clamp(sx(x)+12,pad,W-110), clamp(sy(y)-12,pad+12,H-pad));
+    $('#te-x-out').textContent=fmt(x,2);
+    $('#te-fx-out').textContent=fmt(y,2);
+    $('#te-slope-out').textContent=fmt(m,2);
+    $('#te-formula-out').textContent=cur.lbl;
+    $('#te-xlab').textContent='x = '+fmt(x,2);
+  }
+  function setFn(k){
+    key=k; cur=FUN[k]; const sl=$('#te-x');
+    sl.min=cur.xD[0]; sl.max=cur.xD[1]; sl.step=0.01;
+    px=clamp(px,cur.xD[0],cur.xD[1]); sl.value=px; draw();
+  }
+  $('#te-fn').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+    $$('#te-fn button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); setFn(b.dataset.f); });
+  $('#te-x').addEventListener('input',e=>{ px=parseFloat(e.target.value); draw(); });
+  $('#te-sec').addEventListener('change',e=>{ showSec=e.target.checked; draw(); });
+  function pointerMove(e){ if(!dragging)return; const p=evPos(cv,e); px=clamp(ix(p.x),cur.xD[0],cur.xD[1]); $('#te-x').value=px; draw(); e.preventDefault(); }
+  cv.addEventListener('mousedown',e=>{dragging=true;pointerMove(e);});
+  cv.addEventListener('touchstart',e=>{dragging=true;pointerMove(e);},{passive:false});
+  window.addEventListener('mousemove',pointerMove);
+  window.addEventListener('touchmove',pointerMove,{passive:false});
+  window.addEventListener('mouseup',()=>dragging=false);
+  window.addEventListener('touchend',()=>dragging=false);
+  cv.style.cursor='ew-resize';
+  setFn('sq');
+})();
+
+/* ============================================================
+   3 · GRADIENT DESCENT VISUALIZER
+   ============================================================ */
+(function gdTool(){
+  const cv=$('#gd-canvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  const SURF={
+    bowl: {f:(x,y)=>x*x+y*y,           g:(x,y)=>[2*x,2*y],            xD:[-2.6,2.6],yD:[-2.6,2.6],min:[0,0],start:[1.9,1.7],a:0.10},
+    ell:  {f:(x,y)=>3*x*x+y*y,         g:(x,y)=>[6*x,2*y],           xD:[-2.6,2.6],yD:[-2.6,2.6],min:[0,0],start:[1.9,2.0],a:0.10},
+    rosen:{f:(x,y)=>(1-x)*(1-x)+6*(y-x*x)*(y-x*x), g:(x,y)=>[-2*(1-x)-24*x*(y-x*x), 12*(y-x*x)], xD:[-1.6,1.7],yD:[-0.7,2.3],min:[1,1],start:[-1.1,1.5],a:0.02}
+  };
+  let key='bowl', S=SURF.bowl, pos=[...S.start], path=[[...S.start]], it=0, alpha=0.1, running=false, raf=null, diverged=false, heat=null;
+  const sx=x=>(x-S.xD[0])/(S.xD[1]-S.xD[0])*W;
+  const sy=y=>H-(y-S.yD[0])/(S.yD[1]-S.yD[0])*H;
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function colr(t){ t=clamp(t,0,1); // navy(low)->pale blue(high)
+    const c0=[14,30,70], c1=[37,99,235], c2=[224,242,254];
+    let r,g,b; if(t<0.5){const u=t/0.5; r=lerp(c0[0],c1[0],u);g=lerp(c0[1],c1[1],u);b=lerp(c0[2],c1[2],u);} else {const u=(t-0.5)/0.5; r=lerp(c1[0],c2[0],u);g=lerp(c1[1],c2[1],u);b=lerp(c1[2],c2[2],u);}
+    return [r|0,g|0,b|0];
+  }
+  function buildHeat(){
+    const img=ctx.createImageData(W,H), d=img.data;
+    let fmin=Infinity,fmax=-Infinity; const NB=14;
+    const vals=new Float32Array(W*H);
+    for(let py=0;py<H;py+=1){ const y=S.yD[0]+(1-py/H)*(S.yD[1]-S.yD[0]);
+      for(let px=0;px<W;px+=1){ const x=S.xD[0]+px/W*(S.xD[1]-S.xD[0]); const v=S.f(x,y); vals[py*W+px]=v; if(v<fmin)fmin=v; if(v>fmax)fmax=v; } }
+    for(let i=0;i<W*H;i++){ let t=(vals[i]-fmin)/(fmax-fmin+1e-9); t=Math.pow(t,0.42); const band=Math.floor(t*NB)/NB; const [r,g,b]=colr(band); const o=i*4; d[o]=r;d[o+1]=g;d[o+2]=b;d[o+3]=255; }
+    heat=img;
+  }
+  function draw(){
+    ctx.putImageData(heat,0,0);
+    // min marker
+    ctx.fillStyle='#22c55e'; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(sx(S.min[0]),sy(S.min[1]),6,0,7);ctx.fill();ctx.stroke();
+    // path
+    if(path.length>1){ ctx.strokeStyle='#fb7185'; ctx.lineWidth=2.4; ctx.beginPath();
+      path.forEach((p,i)=>{ const X=sx(p[0]),Y=sy(p[1]); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }); ctx.stroke();
+      ctx.fillStyle='#e11d48'; path.forEach(p=>{ ctx.beginPath();ctx.arc(sx(p[0]),sy(p[1]),2.6,0,7);ctx.fill(); }); }
+    // current
+    const X=sx(pos[0]),Y=sy(pos[1]);
+    ctx.fillStyle='#e11d48'; ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.beginPath();ctx.arc(X,Y,7,0,7);ctx.fill();ctx.stroke();
+    // gradient arrow (downhill)
+    if(!diverged){ const g=S.g(pos[0],pos[1]); const gn=Math.hypot(g[0],g[1])||1; const L=34;
+      const ax=X-g[0]/gn*L, ay=Y+g[1]/gn*L; // note sy flips, so −∇ downhill = +y screen
+      ctx.strokeStyle='#0f213e'; ctx.lineWidth=2; ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(ax,ay);ctx.stroke();
+    }
+    const f=S.f(pos[0],pos[1]); const g=S.g(pos[0],pos[1]); const gn=Math.hypot(g[0],g[1]);
+    $('#gd-it').textContent=it;
+    $('#gd-pos').textContent='('+fmt(pos[0],2)+', '+fmt(pos[1],2)+')';
+    $('#gd-cost').textContent=fmt(f, f>100?0:2);
+    $('#gd-gnorm').textContent= diverged?'∞':fmt(gn,2);
+  }
+  function step(){
+    if(diverged) return;
+    const g=S.g(pos[0],pos[1]);
+    pos=[pos[0]-alpha*g[0], pos[1]-alpha*g[1]]; it++;
+    path.push([...pos]);
+    if(Math.abs(pos[0])>1e3||Math.abs(pos[1])>1e3|| pos[0]<S.xD[0]-3||pos[0]>S.xD[1]+3||pos[1]<S.yD[0]-3||pos[1]>S.yD[1]+3){
+      diverged=true; running=false; setRun(false); flash('Diverged ✕ — α is too large for this surface'); }
+    const gn=Math.hypot(g[0],g[1]);
+    if(gn<1e-3){ running=false; setRun(false); flash('Converged ✓ — gradient ≈ 0'); }
+  }
+  let flashEl=null;
+  function flash(msg){ const r=$('#gd-tool .tbody'); if(!flashEl){flashEl=document.createElement('div'); flashEl.style.cssText='margin-top:10px;font-weight:700;font-size:13.5px;color:#1d4ed8'; r.appendChild(flashEl);} flashEl.textContent=msg; }
+  function clearFlash(){ if(flashEl)flashEl.textContent=''; }
+  function loop(){ if(!running)return; step(); draw(); raf=setTimeout(()=>requestAnimationFrame(loop),120); }
+  function setRun(on){ running=on; $('#gd-play').textContent=on?'❚❚ Pause':'▶ Run'; if(on){clearFlash();loop();}else if(raf){clearTimeout(raf);} }
+  function reset(keepStart){ if(raf)clearTimeout(raf); running=false; setRun(false); diverged=false; pos=keepStart?[...pos]:[...S.start]; path=[[...pos]]; it=0; clearFlash(); draw(); }
+  function setSurf(k){ key=k; S=SURF[k]; alpha=S.a; $('#gd-a').value=alpha; $('#gd-a-lab').textContent=fmt(alpha,3); buildHeat(); reset(false); }
+  $('#gd-fn').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; $$('#gd-fn button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); setSurf(b.dataset.f); });
+  $('#gd-a').addEventListener('input',e=>{ alpha=parseFloat(e.target.value); $('#gd-a-lab').textContent=fmt(alpha,3); });
+  $('#gd-play').addEventListener('click',()=>{ if(diverged)reset(false); setRun(!running); });
+  $('#gd-step').addEventListener('click',()=>{ if(diverged)reset(false); setRun(false); step(); draw(); });
+  $('#gd-reset').addEventListener('click',()=>reset(false));
+  cv.addEventListener('click',e=>{ const p=evPos(cv,e); const x=S.xD[0]+p.x/W*(S.xD[1]-S.xD[0]); const y=S.yD[0]+(1-p.y/H)*(S.yD[1]-S.yD[0]); if(raf)clearTimeout(raf); running=false;setRun(false); diverged=false; pos=[x,y]; path=[[x,y]]; it=0; clearFlash(); draw(); });
+  cv.style.cursor='crosshair';
+  setSurf('bowl');
+})();
+
+/* ============================================================
+   4 · NEURAL NET · FORWARD + BACKPROP ANIMATOR  (2-2-1 sigmoid)
+   ============================================================ */
+(function bpTool(){
+  const cv=$('#bp-canvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  const spark=$('#bp-spark'), sctx=spark.getContext('2d');
+  const X=[1.0,0.5], Y=1.0;
+  const init=()=>({ W1:[[0.50,-0.30],[0.20,0.80]], b1:[0.10,-0.20], W2:[0.70,-0.50], b2:0.10 });
+  let net=init(), alpha=0.5, lossHist=[], anim=null, fwd=null, bwd=null;
+  const NODE={ in:[[80,150],[80,275]], hid:[[290,150],[290,275]], out:[470,212] };
+
+  function forward(n){
+    const z1=[0,0],a1=[0,0];
+    for(let j=0;j<2;j++){ z1[j]=n.W1[j][0]*X[0]+n.W1[j][1]*X[1]+n.b1[j]; a1[j]=sig(z1[j]); }
+    const z2=n.W2[0]*a1[0]+n.W2[1]*a1[1]+n.b2, a2=sig(z2);
+    const L=0.5*(a2-Y)*(a2-Y);
+    return {z1,a1,z2,a2,L};
+  }
+  function backward(n,f){
+    const d2=(f.a2-Y)*f.a2*(1-f.a2);          // dL/dz2
+    const dW2=[d2*f.a1[0], d2*f.a1[1]], db2=d2;
+    const d1=[0,0];
+    for(let j=0;j<2;j++){ d1[j]=d2*n.W2[j]*f.a1[j]*(1-f.a1[j]); }
+    const dW1=[[d1[0]*X[0],d1[0]*X[1]],[d1[1]*X[0],d1[1]*X[1]]], db1=[d1[0],d1[1]];
+    return {d2,dW2,db2,d1,dW1,db1};
+  }
+  function gdStep(){
+    const f=forward(net), b=backward(net,f);
+    for(let j=0;j<2;j++){ for(let i=0;i<2;i++) net.W1[j][i]-=alpha*b.dW1[j][i]; net.b1[j]-=alpha*b.db1[j]; }
+    net.W2[0]-=alpha*b.dW2[0]; net.W2[1]-=alpha*b.dW2[1]; net.b2-=alpha*b.db2;
+    const nf=forward(net); lossHist.push(nf.L); return nf;
+  }
+  // drawing -------------------------------------------------
+  function edge(p,q,w,active,col){
+    ctx.strokeStyle=active?col:'#cfdcef'; ctx.lineWidth=active?3:1.2+Math.min(3,Math.abs(w)*1.6);
+    ctx.beginPath();ctx.moveTo(p[0]+22,p[1]);ctx.lineTo(q[0]-22,q[1]);ctx.stroke();
+    if(active){ ctx.fillStyle=col; ctx.font='11px Inter'; ctx.fillText(fmt(w,2),(p[0]+q[0])/2-8,(p[1]+q[1])/2-4); }
+  }
+  function node(p,r,label,val,col,ring){
+    ctx.fillStyle=col; ctx.strokeStyle=ring; ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.arc(p[0],p[1],r,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#0f213e'; ctx.font='bold 12px Inter'; ctx.textAlign='center';
+    ctx.fillText(label,p[0],p[1]-2);
+    if(val!==null){ ctx.font='11px Inter'; ctx.fillStyle='#1d4ed8'; ctx.fillText(val,p[0],p[1]+13); }
+    ctx.textAlign='left';
+  }
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const f = fwd || forward(net);
+    const showF = !!fwd, showB=!!bwd;
+    // edges in->hid
+    for(let j=0;j<2;j++) for(let i=0;i<2;i++){
+      const aF=showF&&fwd.stage>=1, aB=showB&&bwd.stage>=3;
+      edge(NODE.in[i],NODE.hid[j], net.W1[j][i], aB?true:aF, aB?'#e11d48':'#2563eb');
+    }
+    // edges hid->out
+    for(let j=0;j<2;j++){ const aF=showF&&fwd.stage>=2, aB=showB&&bwd.stage>=1;
+      edge(NODE.hid[j],NODE.out, net.W2[j], aB?true:aF, aB?'#e11d48':'#2563eb'); }
+    // nodes
+    node(NODE.in[0],22,'x₁','1.0', '#eff6ff', showB&&bwd.stage>=4?'#e11d48':'#2563eb');
+    node(NODE.in[1],22,'x₂','0.5', '#eff6ff', showB&&bwd.stage>=4?'#e11d48':'#2563eb');
+    for(let j=0;j<2;j++){
+      const lit = showB&&bwd.stage>=3;
+      const v = showF&&fwd.stage>=1 ? 'a='+fmt(f.a1[j],2) : (showB&&bwd.stage>=3?'δ='+fmt(bwd.d1[j],2):null);
+      node(NODE.hid[j],24,'h'+(j+1), v, lit?'#ffe4e6':'#dbeafe', lit?'#e11d48':'#2563eb');
+    }
+    const outVal = showB&&bwd.stage>=1 ? 'δ='+fmt(bwd.d2,2) : (showF&&fwd.stage>=2?'ŷ='+fmt(f.a2,2):null);
+    node(NODE.out,26,'ŷ', outVal, showB?'#ffe4e6':'#bfdbfe', showB?'#e11d48':'#1d4ed8');
+    // target
+    ctx.fillStyle='#0f7a54'; ctx.font='bold 12px Inter'; ctx.fillText('target y = 1', 405, 60);
+    drawSpark();
+    const cur=forward(net);
+    $('#bp-loss').textContent=fmt(cur.L,4);
+  }
+  function drawSpark(){
+    sctx.clearRect(0,0,spark.width,spark.height);
+    sctx.fillStyle='#f6f9ff'; sctx.fillRect(0,0,spark.width,spark.height);
+    sctx.strokeStyle='#dbe6f5'; sctx.strokeRect(0.5,0.5,spark.width-1,spark.height-1);
+    if(lossHist.length<2){ sctx.fillStyle='#9fb2cf'; sctx.font='11px Inter'; sctx.fillText('loss vs. training steps',10,48); return; }
+    const mx=Math.max(...lossHist), mn=Math.min(...lossHist,0);
+    sctx.strokeStyle='#e11d48'; sctx.lineWidth=2; sctx.beginPath();
+    lossHist.forEach((l,i)=>{ const x=6+i/(lossHist.length-1)*(spark.width-12); const y=spark.height-8-(l-mn)/(mx-mn+1e-9)*(spark.height-18); i?sctx.lineTo(x,y):sctx.moveTo(x,y); });
+    sctx.stroke();
+    sctx.fillStyle='#64748b'; sctx.font='10px Inter'; sctx.fillText('loss',6,12);
+  }
+  function log(lines){ $('#bp-log').textContent=lines.join('\n'); }
+  // animations ----------------------------------------------
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  let token=0;
+  async function animForward(){
+    const my=++token; bwd=null; const f=forward(net); fwd={...f,stage:0};
+    log(['▶ FORWARD PASS','input x = (1.0, 0.5)']);
+    render(); await sleep(420); if(my!==token)return;
+    fwd.stage=1; log(['▶ FORWARD PASS','hidden:', ' z1='+fmt(f.z1[0],2)+'  a1=σ(z1)='+fmt(f.a1[0],2),' z2='+fmt(f.z1[1],2)+'  a2=σ(z2)='+fmt(f.a1[1],2)]); render(); await sleep(560); if(my!==token)return;
+    fwd.stage=2; log(['▶ FORWARD PASS','hidden a⁽¹⁾ = ('+fmt(f.a1[0],2)+', '+fmt(f.a1[1],2)+')','output:',' ŷ = σ(w·a⁽¹⁾+b) = '+fmt(f.a2,3)]); render(); await sleep(560); if(my!==token)return;
+    fwd.stage=3; log(['▶ FORWARD PASS done','ŷ = '+fmt(f.a2,3)+'   (target y = 1)','loss ½(ŷ−y)² = '+fmt(f.L,4),'','Now press ◀ Backpropagate']); render();
+  }
+  async function animBackward(){
+    const my=++token; const f=forward(net); fwd={...f,stage:3}; const b=backward(net,f); bwd={...b,stage:0};
+    log(['◀ BACKPROPAGATION','δ = (ŷ−y)·ŷ(1−ŷ)']); render(); await sleep(420); if(my!==token)return;
+    bwd.stage=1; log(['◀ BACKPROP — output','ŷ−y = '+fmt(f.a2-Y,3),'δ² = (ŷ−y)·ŷ(1−ŷ) = '+fmt(b.d2,3),'∂L/∂w² = δ²·a⁽¹⁾']); render(); await sleep(620); if(my!==token)return;
+    bwd.stage=3; log(['◀ BACKPROP — hidden','chain rule back through w²:','δ¹ⱼ = δ²·w²ⱼ·aⱼ(1−aⱼ)','δ¹ = ('+fmt(b.d1[0],3)+', '+fmt(b.d1[1],3)+')']); render(); await sleep(640); if(my!==token)return;
+    bwd.stage=4; log(['◀ BACKPROP done','∂L/∂w¹ = δ¹·x','gradients ready for every weight.','','Press “Update weights” to take a GD step.']); render();
+  }
+  function doUpdate(){ token++; const nf=gdStep(); fwd=null; bwd=null; log(['✓ GD STEP  w ← w − α·∂L/∂w','α = '+fmt(alpha,2),'new loss = '+fmt(nf.L,4),'(run it again to keep training)']); render(); }
+  async function autoTrain(){ const my=++token; for(let k=0;k<25;k++){ if(my!==token)return; gdStep(); fwd=null;bwd=null; render(); log(['⟳ TRAINING…','step '+(k+1)+' / 25','loss = '+fmt(lossHist[lossHist.length-1],4)]); await sleep(70);} log(['⟳ TRAINED 25 steps','loss = '+fmt(lossHist[lossHist.length-1],4)+'  (started ~'+fmt(lossHist[0],3)+')','ŷ → '+fmt(forward(net).a2,3)+'  (target 1)']); }
+  function reset(){ token++; net=init(); lossHist=[]; fwd=null;bwd=null; const f0=forward(net); lossHist.push(f0.L); log(['Network reset.','ŷ = '+fmt(f0.a2,3)+'  ·  loss = '+fmt(f0.L,4),'','Press ▶ Forward to begin.']); render(); }
+  $('#bp-fwd').addEventListener('click',animForward);
+  $('#bp-back').addEventListener('click',animBackward);
+  $('#bp-step').addEventListener('click',doUpdate);
+  $('#bp-auto').addEventListener('click',autoTrain);
+  $('#bp-reset').addEventListener('click',reset);
+  $('#bp-a').addEventListener('input',e=>{ alpha=parseFloat(e.target.value); $('#bp-a-lab').textContent=fmt(alpha,2); });
+  reset();
+})();
+
+/* ============================================================
+   5 · EXPRESSION ENGINE  (for grading generative quizzes)
+   ============================================================ */
+function tokenize(str){
+  const s=str.toLowerCase().replace(/\s+/g,''); const toks=[]; let i=0;
+  const funcs=['exp','sqrt','sin','cos','tan','ln','log'];
+  while(i<s.length){ const c=s[i];
+    if(/[0-9.]/.test(c)){ let j=i+1; while(j<s.length&&/[0-9.]/.test(s[j]))j++; toks.push({t:'num',v:s.slice(i,j)}); i=j; continue; }
+    if(/[a-z]/.test(c)){ let m=null; for(const f of funcs){ if(s.startsWith(f,i)){m=f;break;} }
+      if(m){ toks.push({t:'func',v:m}); i+=m.length; continue; }
+      if(s.startsWith('pi',i)){ toks.push({t:'const',v:'pi'}); i+=2; continue; }
+      if(c==='x'||c==='y'){ toks.push({t:'var',v:c}); i++; continue; }
+      if(c==='e'){ toks.push({t:'const',v:'e'}); i++; continue; }
+      return null; }
+    if('+-*/^(),'.includes(c)){ toks.push({t:'op',v:c}); i++; continue; }
+    return null; }
+  return toks;
+}
+function compileExpr(str){
+  const toks=tokenize(str); if(!toks||!toks.length) return null;
+  const FN={exp:'Math.exp',sqrt:'Math.sqrt',sin:'Math.sin',cos:'Math.cos',tan:'Math.tan',ln:'Math.log',log:'Math.log'};
+  const valEnd=tk=>tk&&(tk.t==='num'||tk.t==='var'||tk.t==='const'||(tk.t==='op'&&tk.v===')'));
+  const valStart=tk=>tk&&(tk.t==='num'||tk.t==='var'||tk.t==='const'||tk.t==='func'||(tk.t==='op'&&tk.v==='('));
+  let js='';
+  for(let k=0;k<toks.length;k++){ const tk=toks[k],pv=toks[k-1];
+    if(valEnd(pv)&&valStart(tk)) js+='*';
+    if(tk.t==='num') js+=tk.v;
+    else if(tk.t==='var') js+=tk.v;
+    else if(tk.t==='const') js+= tk.v==='pi'?'Math.PI':'Math.E';
+    else if(tk.t==='func') js+=FN[tk.v];
+    else if(tk.t==='op') js+= tk.v==='^'?'**':tk.v;
+  }
+  try{ const f=new Function('x','y','return ('+js+');'); const t=f(0.6,0.7); if(typeof t!=='number') return null; return f; }
+  catch(e){ return null; }
+}
+function exprEquiv(userFn, refFn, vars){
+  const pts = vars==='xy' ? [[0.7,1.3],[1.6,0.5],[-0.6,2.1],[2.2,-1.1],[0.4,0.9]] : [[0.7,0],[1.3,0],[-0.6,0],[2.2,0],[1.9,0]];
+  let tot=0,ok=0;
+  for(const [a,b] of pts){ const r=refFn(a,b); if(!isFinite(r))continue; let u; try{u=userFn(a,b);}catch(e){return false;} if(!isFinite(u))return false; tot++; if(Math.abs(u-r)<=Math.max(1e-3,1e-4*Math.abs(r)))ok++; }
+  return tot>0&&ok===tot;
+}
+const parseNums = s => (String(s).match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+
+/* ============================================================
+   6 · GENERATIVE QUIZ ENGINE
+   ============================================================ */
+/* pretty math term builders so the quiz never prints "1x", "x^{1}", "+-3", etc. */
+const Vp=(v,n)=> n===0?'':(n===1?v:`${v}^{${n}}`);
+const lead=(c,vn)=> vn===''?`${c}`:(c===1?vn:(c===-1?`-${vn}`:`${c}${vn}`));
+const cont=(c,vn)=>{ if(c===0)return''; const s=c<0?'-':'+',a=Math.abs(c); const body=vn===''?`${a}`:(a===1?vn:`${a}${vn}`); return `${s}${body}`; };
+const QBANK = {
+  /* ---- WEEK 1 ---- */
+  w1:{
+    power(){ const c=ri(2,9),n=ri(2,6); const ref=(x)=>c*n*x**(n-1);
+      return {prompt:String.raw`Differentiate \(f(x)=${lead(c,Vp('x',n))}\).`, kind:'expr',vars:'x',ref,
+        sol:[String.raw`Power rule: \(\frac{d}{dx}x^{n}=n\,x^{\,n-1}\) — bring the exponent down, subtract one.`,
+             String.raw`\(${c}\cdot${n}=${c*n}\), and \(${n}-1=${n-1}\).`,
+             String.raw`\(f'(x)=${lead(c*n,Vp('x',n-1))}\).`]};
+    },
+    poly(){ const a=nz(2,7),p=ri(3,5),b=nz(2,8),q=ri(1,2),c=ri(1,9);
+      const ref=x=>a*p*x**(p-1)+b*q*x**(q-1);
+      return {prompt:String.raw`Differentiate \(f(x)=${lead(a,Vp('x',p))}${cont(b,Vp('x',q))}${cont(c,'')}\).`, kind:'expr',vars:'x',ref,
+        sol:[String.raw`Differentiate term by term; the constant \(${c}\) vanishes.`,
+             String.raw`\(\frac{d}{dx}\,${lead(a,Vp('x',p))}=${lead(a*p,Vp('x',p-1))}\) and \(\frac{d}{dx}\,${lead(b,Vp('x',q))}=${lead(b*q,Vp('x',q-1))}\).`,
+             String.raw`\(f'(x)=${lead(a*p,Vp('x',p-1))}${cont(b*q,Vp('x',q-1))}\).`]};
+    },
+    product(){ const a=nz(1,4),b=nz(1,6),c=nz(1,4),d=nz(1,6);
+      const ref=x=>a*(c*x+d)+(a*x+b)*c; const A=2*a*c, B=a*d+b*c;
+      const f1=`${lead(a,'x')}${cont(b,'')}`, f2=`${lead(c,'x')}${cont(d,'')}`;
+      return {prompt:String.raw`Use the product rule: \(f(x)=(${f1})(${f2})\). Find \(f'(x)\).`, kind:'expr',vars:'x',ref,
+        sol:[String.raw`\((fg)'=f'g+fg'\) with \(f=${f1}\;(f'=${a})\), \(g=${f2}\;(g'=${c})\).`,
+             String.raw`\(=${a}(${f2})+(${f1})(${c})\).`,
+             String.raw`Collect: \(f'(x)=${lead(A,'x')}${cont(B,'')}\).`]};
+    },
+    chain(){ const a=nz(2,5),b=nz(1,6),n=ri(2,4); const ref=x=>n*(a*x*x+b)**(n-1)*(2*a*x);
+      const inside=`${lead(a,Vp('x',2))}${cont(b,'')}`, pe=(n-1===1)?'':`^{${n-1}}`;
+      return {prompt:String.raw`Use the chain rule: \(f(x)=(${inside})^{${n}}\). Find \(f'(x)\).`, kind:'expr',vars:'x',ref,
+        sol:[String.raw`Outside \(u^{${n}}\Rightarrow ${n}u^{${n-1}}\); inside \(u=${inside}\Rightarrow u'=${2*a}x\).`,
+             String.raw`Multiply: \(f'(x)=${n}(${inside})^{${n-1}}\cdot ${2*a}x\).`,
+             String.raw`\(f'(x)=${lead(n*2*a,'x')}\,(${inside})${pe}\).`]};
+    },
+    optimize(){ const a=ri(1,3); const xs=nz(-3,3); const b=-2*a*xs; const c=ri(-5,9); const ref=xs;
+      return {prompt:String.raw`At what \(x\) is \(f(x)=${lead(a,Vp('x',2))}${cont(b,'x')}${cont(c,'')}\) minimised?`, kind:'num',vars:'x',ref,
+        sol:[String.raw`Set \(f'(x)=0\): \(f'(x)=${lead(2*a,'x')}${cont(b,'')}\).`,
+             String.raw`\(${lead(2*a,'x')}=${-b}\Rightarrow x=\dfrac{${-b}}{${2*a}}\).`,
+             String.raw`\(x^\star=${xs}\)  (\(f''=${2*a}>0\), so it's a minimum).`]};
+    }
+  },
+  /* ---- WEEK 2 ---- */
+  w2:{
+    partial(){ const a=nz(2,6),p=ri(1,3),q=ri(1,3); const wrt=pick(['x','y']);
+      const ref = wrt==='x' ? (x,y)=>a*p*x**(p-1)*y**q : (x,y)=>a*q*x**p*y**(q-1);
+      const term=`${a}${Vp('x',p)}${Vp('y',q)}`;
+      const solx=String.raw`Hold \(${Vp('y',q)}\) constant: \(\frac{\partial}{\partial x}\,${term}=${a*p}${Vp('x',p-1)}${Vp('y',q)}\).`;
+      const soly=String.raw`Hold \(${a}${Vp('x',p)}\) constant: \(\frac{\partial}{\partial y}\,${term}=${a*q}${Vp('x',p)}${Vp('y',q-1)}\).`;
+      return {prompt:String.raw`For \(f(x,y)=${term}\), find \(\dfrac{\partial f}{\partial ${wrt}}\).`, kind:'expr',vars:'xy',ref,
+        sol:[wrt==='x'?solx:soly, String.raw`Treat the other variable as a constant and apply the power rule to \(${wrt}\).`]};
+    },
+    gradient(){ const a=nz(1,5),b=nz(1,5),c=nz(1,4);
+      const rx=(x,y)=>2*a*x+c*y, ry=(x,y)=>2*b*y+c*x;
+      return {prompt:String.raw`Find the gradient of \(f(x,y)=${lead(a,Vp('x',2))}${cont(b,Vp('y',2))}${cont(c,'xy')}\) — type \(f_x,\,f_y\) separated by a comma.`,
+        kind:'expr2',vars:'xy',refx:rx,refy:ry,
+        sol:[String.raw`\(f_x\): treat \(y\) as constant \(\Rightarrow ${lead(2*a,'x')}${cont(c,'y')}\).`,
+             String.raw`\(f_y\): treat \(x\) as constant \(\Rightarrow ${lead(2*b,'y')}${cont(c,'x')}\).`,
+             String.raw`\(\nabla f=(${lead(2*a,'x')}${cont(c,'y')},\ ${lead(2*b,'y')}${cont(c,'x')})\).`]};
+    },
+    gdstep(){ const a=ri(1,3),b=ri(1,3); const x0=ri(2,6)/2, y0=ri(2,6)/2; const al=pick([0.1,0.2,0.5,0.25]);
+      const nx=x0-al*2*a*x0, ny=y0-al*2*b*y0;
+      return {prompt:String.raw`Surface \(f(x,y)=${lead(a,Vp('x',2))}${cont(b,Vp('y',2))}\), start \((${x0},${y0})\), learning rate \(\alpha=${al}\). Give the point after ONE gradient-descent step \((x,y)\).`,
+        kind:'tuple',vars:'xy',ref:[nx,ny],
+        sol:[String.raw`\(\nabla f=(${2*a}x,\,${2*b}y)=(${2*a*x0},\,${2*b*y0})\) at the start.`,
+             String.raw`\(x\leftarrow ${x0}-${al}\cdot${2*a*x0}=${fmt(nx,3)}\),\(\quad y\leftarrow ${y0}-${al}\cdot${2*b*y0}=${fmt(ny,3)}\).`,
+             String.raw`New point \((${fmt(nx,3)},\ ${fmt(ny,3)})\).`]};
+    }
+  },
+  /* ---- WEEK 3 ---- */
+  w3:{
+    second(){ const a=nz(1,4),b=nz(1,6),c=ri(1,9); const ref=x=>12*a*x*x+2*b;
+      return {prompt:String.raw`Find the SECOND derivative \(f''(x)\) of \(f(x)=${lead(a,Vp('x',4))}${cont(b,Vp('x',2))}${cont(c,'')}\).`, kind:'expr',vars:'x',ref,
+        sol:[String.raw`First: \(f'(x)=${lead(4*a,Vp('x',3))}${cont(2*b,'x')}\).`,
+             String.raw`Differentiate again: \(f''(x)=${lead(12*a,Vp('x',2))}${cont(2*b,'')}\).`]};
+    },
+    newton(){ const xk=ri(2,9)/2; const gp=nz(-8,8); const gpp=ri(2,9); const ref=xk-gp/gpp; const q=gp/gpp;
+      return {prompt:String.raw`Newton step: \(x_k=${xk}\), \(g'(x_k)=${gp}\), \(g''(x_k)=${gpp}\). Compute \(x_{k+1}=x_k-\dfrac{g'(x_k)}{g''(x_k)}\).`,
+        kind:'num',vars:'x',ref,
+        sol:[String.raw`\(x_{k+1}=${xk}-\dfrac{${gp}}{${gpp}}=${xk}-(${fmt(q,3)})\).`,
+             String.raw`\(=${fmt(ref,3)}\).`]};
+    },
+    hessian(){ let a,b,c,det; do{ a=nz(-3,3); b=nz(-3,3); c=nz(-4,4); det=4*a*b-c*c; }while(det===0);
+      let word, why;
+      if(det<0){ word='saddle'; why=String.raw`\(\det H<0\Rightarrow\) saddle point.`; }
+      else if(a>0){ word='minimum'; why=String.raw`\(\det H>0\) and \(f_{xx}=${2*a}>0\Rightarrow\) minimum.`; }
+      else { word='maximum'; why=String.raw`\(\det H>0\) and \(f_{xx}=${2*a}<0\Rightarrow\) maximum.`; }
+      return {prompt:String.raw`Classify the critical point \((0,0)\) of \(f(x,y)=${lead(a,Vp('x',2))}${cont(b,Vp('y',2))}${cont(c,'xy')}\) — type minimum, maximum, or saddle.`,
+        kind:'word',ref:word,
+        sol:[String.raw`\(f_{xx}=${2*a},\ f_{yy}=${2*b},\ f_{xy}=${c}\).`,
+             String.raw`\(\det H=f_{xx}f_{yy}-f_{xy}^2=(${2*a})(${2*b})-(${c})^2=${det}\).`, why]};
+    },
+    sigmoid(){ const a=ri(15,85)/100; const ref=a*(1-a);
+      return {prompt:String.raw`A sigmoid neuron outputs \(a=\sigma(z)=${a}\). Compute \(\sigma'(z)=a(1-a)\).`, kind:'num',vars:'x',ref,
+        sol:[String.raw`\(\sigma'(z)=a(1-a)=${a}\,(1-${a})\).`,
+             String.raw`\(=${a}\times${fmt(1-a,2)}=${fmt(ref,4)}\).`]};
+    }
+  }
+};
+function genProblem(week, topic){
+  const bank=QBANK[week]; const keys=Object.keys(bank);
+  const t = (topic==='mix'||!bank[topic]) ? pick(keys) : topic;
+  const p=bank[t](); p.topic=t; return p;
+}
+function gradeProblem(p, raw){
+  const user=(raw||'').trim(); if(!user) return {ok:false,empty:true};
+  if(p.kind==='word'){ const u=user.toLowerCase(); return {ok:(p.ref==='saddle'&&/sadd/.test(u))||(p.ref==='minimum'&&/min/.test(u))||(p.ref==='maximum'&&/max/.test(u))}; }
+  if(p.kind==='num'){ const n=parseNums(user); if(!n.length)return{ok:false}; return {ok:Math.abs(n[0]-p.ref)<=Math.max(0.02,Math.abs(p.ref)*0.02)}; }
+  if(p.kind==='tuple'){ const n=parseNums(user); if(n.length<2)return{ok:false}; return {ok:Math.abs(n[0]-p.ref[0])<=Math.max(0.02,Math.abs(p.ref[0])*0.03)&&Math.abs(n[1]-p.ref[1])<=Math.max(0.02,Math.abs(p.ref[1])*0.03)}; }
+  if(p.kind==='expr'){ const f=compileExpr(user); if(!f)return{ok:false,parse:true}; return {ok:exprEquiv(f,p.ref,p.vars)}; }
+  if(p.kind==='expr2'){ const parts=user.split(/[,;]/); if(parts.length<2)return{ok:false,parse:true}; const f1=compileExpr(parts[0]),f2=compileExpr(parts[1]); if(!f1||!f2)return{ok:false,parse:true}; return {ok:exprEquiv(f1,p.refx,p.vars)&&exprEquiv(f2,p.refy,p.vars)}; }
+  return {ok:false};
+}
+function initQuiz(box){
+  const week=box.dataset.quiz;
+  const promptEl=$('.qprompt',box), input=$('.qinput',box), verdict=$('.verdict',box), scEl=$('.sc',box), topicSel=$('.qtopic',box);
+  let cur=null, solved=0, answered=false;
+  function fresh(){ answered=false; cur=genProblem(week, topicSel.value);
+    promptEl.innerHTML='<span class="pp">Q.</span> '+cur.prompt; input.value=''; input.classList.remove('bad');
+    verdict.className='verdict'; verdict.innerHTML=''; typeset(promptEl); input.focus(); }
+  function showSolution(correct){
+    const steps=cur.sol.map(s=>'<li>'+s+'</li>').join('');
+    verdict.className='verdict show '+(correct?'ok':'no');
+    const head = correct ? '<div class="vh">✓ Correct!</div>' : '<div class="vh">✗ Not quite — here\'s the worked solution</div>';
+    verdict.innerHTML=head+'<div class="worked"><b>Worked solution</b><ol>'+steps+'</ol></div>';
+    typeset(verdict);
+  }
+  function check(){ const r=gradeProblem(cur,input.value);
+    if(r.empty){ input.classList.add('bad'); input.focus(); return; }
+    if(r.parse){ verdict.className='verdict show no'; verdict.innerHTML='<div class="vh">Couldn\'t read that expression</div><div class="worked">Use <code>^</code> for powers and <code>*</code> (optional) for products, e.g. <code>12x^2 + 4x</code>. Or hit <b>Reveal solution</b>.</div>'; return; }
+    if(r.ok && !answered){ solved++; scEl.textContent=solved; }
+    answered=true; showSolution(r.ok);
+  }
+  $('.check',box).addEventListener('click',check);
+  $('.reveal',box).addEventListener('click',()=>{ answered=true; showSolution(false); });
+  $('.next',box).addEventListener('click',fresh);
+  topicSel.addEventListener('change',fresh);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
+  fresh();
+}
+$$('.quiz[data-quiz]').forEach(initQuiz);
+
+/* typeset everything once MathJax is ready */
+if(window.MathJax&&MathJax.startup&&MathJax.startup.promise){ MathJax.startup.promise.then(()=>typeset()); }
+</script>
+
+</body>
+</html>
