@@ -1,8 +1,8 @@
 {
   "labels": [
-    "Physics",
+    "Computer Science",
     "Mathematics",
-    "Computer Science"
+    "Physics"
   ],
   "documents": [
     {
@@ -10,7 +10,9 @@
       "title": "AP Physics C: E&M — Unit 1 Review",
       "description": "Electric Charge, Field & Gauss's Law.",
       "file": "content/ap-physics-c-em-unit-1-review.html",
-      "labels": ["Physics"],
+      "labels": [
+        "Physics"
+      ],
       "added": "2026-06-24",
       "size": 2646453
     },
@@ -19,7 +21,9 @@
       "title": "AP Physics C: E&M — Unit 2 Review",
       "description": "Electric Potential.",
       "file": "content/ap-physics-c-em-unit-2-review.html",
-      "labels": ["Physics"],
+      "labels": [
+        "Physics"
+      ],
       "added": "2026-06-24",
       "size": 2499837
     },
@@ -28,7 +32,9 @@
       "title": "Calculus for Machine Learning",
       "description": "Derivatives, gradients & gradient descent — the engine behind learning.",
       "file": "content/calculus-for-ml-review.html",
-      "labels": ["Mathematics"],
+      "labels": [
+        "Mathematics"
+      ],
       "added": "2026-06-24",
       "size": 140295
     },
@@ -37,9 +43,22 @@
       "title": "Linear Algebra for Machine Learning",
       "description": "Systems of equations, vectors & linear transformations.",
       "file": "content/linear-algebra-for-ml-review.html",
-      "labels": ["Mathematics"],
+      "labels": [
+        "Mathematics"
+      ],
       "added": "2026-06-24",
       "size": 119735
+    },
+    {
+      "id": "ap-physics-c-em-unit-3-review-conductors-capacitors-mqsuqtzm",
+      "title": "AP Physics C: E&M — Unit 3 Review (Conductors & Capacitors)",
+      "description": "",
+      "file": "content/ap-physics-c-em-unit-3-review-conductors-capacitors.html",
+      "labels": [
+        "Physics"
+      ],
+      "added": "2026-06-25",
+      "size": 897066
     }
   ]
 }
